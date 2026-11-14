@@ -4,9 +4,9 @@ import { Alert, Box, Button, Link, Paper, Stack, TextField, Typography } from '@
 import { loginInputSchema, registerInputSchema } from '../schema/auth.schema'
 import { useAuthForm } from '../hooks/use-auth-form'
 
-type Props = { mode: 'login' | 'register' }
+type Props = { mode: 'login' | 'register'; redirectTo?: string | null }
 
-export function AuthFormView({ mode }: Props) {
+export function AuthFormView({ mode, redirectTo }: Props) {
   const isRegister = mode === 'register'
   const { onSubmit, isPending, errorMessage } = useAuthForm(mode)
   const [formError, setFormError] = useState('')
@@ -43,12 +43,12 @@ export function AuthFormView({ mode }: Props) {
         <Stack spacing={2.5}>
           <Box
             aria-hidden="true"
-            sx={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: 2, bgcolor: 'primary.main', fontWeight: 800 }}
+            sx={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: 1, bgcolor: 'primary.main', color: 'primary.contrastText', fontWeight: 700 }}
           >
-            A
+            V
           </Box>
           <Box>
-            <Typography variant="overline" color="primary.light" sx={{ letterSpacing: '.16em' }}>AUTH STARTER</Typography>
+            <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: '.08em' }}>VITRINE</Typography>
             <Typography variant="h4" component="h1" sx={{ mt: 0.5 }}>
               {isRegister ? 'Crie sua conta' : 'Bem-vindo de volta'}
             </Typography>
@@ -79,8 +79,18 @@ export function AuthFormView({ mode }: Props) {
           </Box>
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
             {isRegister ? 'Já tem uma conta?' : 'Ainda não tem conta?'}{' '}
-            <Link component={RouterLink} to={isRegister ? '/login' : '/register'} underline="hover">
+            <Link
+              component={RouterLink}
+              to={isRegister ? '/login' : '/register'}
+              state={redirectTo ? { from: redirectTo } : undefined}
+              underline="hover"
+            >
               {isRegister ? 'Entrar' : 'Criar conta'}
+            </Link>
+          </Typography>
+          <Typography variant="body2" sx={{ textAlign: 'center' }}>
+            <Link component={RouterLink} to="/produtos" underline="hover">
+              Voltar para a página inicial
             </Link>
           </Typography>
         </Stack>

@@ -13,7 +13,12 @@ export function usePaymentStatusQuery(id: string | null, enabled: boolean) {
     enabled: Boolean(id) && enabled,
     refetchInterval: (query) => {
       const payment = query.state.data?.payment
-      return payment && isPaymentFinal(payment.status, payment.statusDetail)
+      return payment &&
+        isPaymentFinal(
+          payment.status,
+          payment.statusDetail,
+          payment.expiresAt,
+        )
         ? false
         : 15_000
     },

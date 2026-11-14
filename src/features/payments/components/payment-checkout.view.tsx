@@ -23,12 +23,14 @@ import { createPaymentInputSchema } from "../schema/payment.schema";
 import { useCreatePaymentMutation } from "../mutations/use-create-payment-mutation";
 import { usePaymentStatusQuery } from "../queries/use-payment-status-query";
 import { PaymentStatusFeedback } from "./payment-status-feedback.view";
+import { PixPaymentInstructions } from "./pix-payment-instructions.view";
 import type { PaymentResponse } from "../types/payment.types";
 import type { Product } from "../../products/types/product.types";
 import type { User } from "../../auth/types/auth.types";
 import { formatCurrency } from "../../../shared/lib/format-currency";
 import { getApiErrorMessage } from "../../../shared/lib/api-error";
 import { logError } from "../../../shared/lib/log-error";
+import { getPaymentState } from "../utils/payment-status";
 
 type Props = {
   product: Product | null;
@@ -57,7 +59,6 @@ export function PaymentCheckoutView({
   const [pixError, setPixError] = useState("");
   const [documentType, setDocumentType] = useState<"CPF" | "CNPJ">("CPF");
   const [documentNumber, setDocumentNumber] = useState("");
-  const [copied, setCopied] = useState(false);
   const paymentStatusQuery = usePaymentStatusQuery(
     result?.id ?? null,
     Boolean(product),
@@ -78,7 +79,6 @@ export function PaymentCheckoutView({
     setBrickError("");
     setPixError("");
     setDocumentNumber("");
-    setCopied(false);
     paymentMutation.reset();
   }, [product?.id]);
 
@@ -136,18 +136,6 @@ export function PaymentCheckoutView({
     }
   }
 
-  async function copyPixCode() {
-    if (!currentPayment?.qrCode) return;
-    try {
-      await navigator.clipboard.writeText(currentPayment.qrCode);
-      setCopied(true);
-      setPixError("");
-    } catch (error) {
-      logError("copyPixCode", error);
-      setPixError("Não foi possível copiar o código. Selecione e copie manualmente.");
-    }
-  }
-
   return (
     <Dialog open={Boolean(product)} onClose={onClose} fullWidth maxWidth="sm">
       {product && (
@@ -200,75 +188,44 @@ export function PaymentCheckoutView({
                 <PaymentStatusFeedback
                   status={currentPayment.status}
                   statusDetail={currentPayment.statusDetail}
+                  expiresAt={currentPayment.expiresAt}
                   pendingMessage={
                     currentPayment.paymentMethod === "pix"
                       ? "Pix gerado. Aguardando a confirmação do pagamento."
                       : "Pedido enviado ao Mercado Pago."
                   }
+                  actions={
+                    <Stack direction="row" spacing={1}>
+                      <Button variant="contained" onClick={onClose}>
+                        {getPaymentState(
+                          currentPayment.status,
+                          currentPayment.statusDetail,
+                          currentPayment.expiresAt,
+                        ) === "success"
+                          ? "Ver meus pedidos"
+                          : "Fechar"}
+                      </Button>
+                    </Stack>
+                  }
                 >
                   {currentPayment.paymentMethod === "pix" && (
-                    <>
-                      {currentPayment.qrCodeBase64 && (
-                        <Box
-                          component="img"
-                          src={`data:image/png;base64,${currentPayment.qrCodeBase64}`}
-                          alt="QR code para pagamento Pix"
-                          sx={{
-                            width: 220,
-                            height: 220,
-                            alignSelf: "center",
-                            objectFit: "contain",
-                          }}
-                        />
-                      )}
-                      {currentPayment.qrCode && (
-                        <Stack spacing={1} sx={{ width: "100%" }}>
-                          <Typography variant="subtitle2">
-                            Pix copia e cola
-                          </Typography>
-                          <TextField
-                            value={currentPayment.qrCode}
-                            multiline
-                            minRows={3}
-                            fullWidth
-                            slotProps={{ input: { readOnly: true } }}
-                          />
-                          <Button variant="outlined" onClick={copyPixCode}>
-                            {copied ? "Código copiado" : "Copiar código Pix"}
-                          </Button>
-                        </Stack>
-                      )}
-                      {currentPayment.ticketUrl && (
-                        <Button
-                          component="a"
-                          href={currentPayment.ticketUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Abrir instruções de pagamento
-                        </Button>
-                      )}
-                      {!currentPayment.qrCode &&
-                        !currentPayment.qrCodeBase64 &&
-                        !currentPayment.ticketUrl && (
-                          <Alert severity="warning">
-                            O pedido foi criado, mas o Mercado Pago não retornou
-                            os dados do Pix. Consulte o status novamente em
-                            instantes ou contate o suporte.
-                          </Alert>
-                        )}
-                      {paymentStatusQuery.isFetching && (
-                        <Typography variant="caption" color="text.secondary">
-                          Atualizando status do pagamento…
-                        </Typography>
-                      )}
-                      {paymentStatusQuery.error && (
-                        <Alert severity="warning">
-                          Não foi possível atualizar o status:{" "}
-                          {getApiErrorMessage(paymentStatusQuery.error)}
-                        </Alert>
-                      )}
-                    </>
+                    <PixPaymentInstructions
+                      qrCode={currentPayment.qrCode}
+                      qrCodeBase64={currentPayment.qrCodeBase64}
+                      ticketUrl={currentPayment.ticketUrl}
+                      expiresAt={currentPayment.expiresAt}
+                    />
+                  )}
+                  {paymentStatusQuery.isFetching && (
+                    <Typography variant="caption" color="text.secondary">
+                      Atualizando status do pagamento…
+                    </Typography>
+                  )}
+                  {paymentStatusQuery.error && (
+                    <Alert severity="warning">
+                      Não foi possível atualizar o status:{" "}
+                      {getApiErrorMessage(paymentStatusQuery.error)}
+                    </Alert>
                   )}
                 </PaymentStatusFeedback>
               )}
