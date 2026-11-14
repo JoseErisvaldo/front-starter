@@ -22,6 +22,7 @@ import { CardPayment, initMercadoPago } from "@mercadopago/sdk-react";
 import { createPaymentInputSchema } from "../schema/payment.schema";
 import { useCreatePaymentMutation } from "../mutations/use-create-payment-mutation";
 import { usePaymentStatusQuery } from "../queries/use-payment-status-query";
+import { PaymentStatusFeedback } from "./payment-status-feedback.view";
 import type { PaymentResponse } from "../types/payment.types";
 import type { Product } from "../../products/types/product.types";
 import type { User } from "../../auth/types/auth.types";
@@ -147,11 +148,6 @@ export function PaymentCheckoutView({
     }
   }
 
-  const isSuccessful = currentPayment?.status === "processed";
-  const isFailed = ["failed", "cancelled", "rejected", "expired"].includes(
-    currentPayment?.status ?? "",
-  );
-
   return (
     <Dialog open={Boolean(product)} onClose={onClose} fullWidth maxWidth="sm">
       {product && (
@@ -201,25 +197,15 @@ export function PaymentCheckoutView({
               {paymentMutation.isPending && <CircularProgress size={24} />}
 
               {currentPayment && (
-                <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
-                  <Alert
-                    severity={
-                      isSuccessful ? "success" : isFailed ? "error" : "info"
-                    }
-                    sx={{ width: "100%" }}
-                  >
-                    {isSuccessful
-                      ? "Pagamento confirmado."
-                      : isFailed
-                        ? "O pagamento não foi aprovado ou expirou."
-                        : currentPayment.paymentMethod === "pix"
-                          ? "Pix gerado. Aguardando a confirmação do pagamento."
-                          : "Pedido enviado ao Mercado Pago."}
-                    {" "}Status: {currentPayment.status}
-                    {currentPayment.statusDetail
-                      ? ` (${currentPayment.statusDetail})`
-                      : ""}
-                  </Alert>
+                <PaymentStatusFeedback
+                  status={currentPayment.status}
+                  statusDetail={currentPayment.statusDetail}
+                  pendingMessage={
+                    currentPayment.paymentMethod === "pix"
+                      ? "Pix gerado. Aguardando a confirmação do pagamento."
+                      : "Pedido enviado ao Mercado Pago."
+                  }
+                >
                   {currentPayment.paymentMethod === "pix" && (
                     <>
                       {currentPayment.qrCodeBase64 && (
@@ -284,7 +270,7 @@ export function PaymentCheckoutView({
                       )}
                     </>
                   )}
-                </Stack>
+                </PaymentStatusFeedback>
               )}
 
               {!currentPayment && method === "card" && publicKey && (
