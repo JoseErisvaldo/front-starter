@@ -4,7 +4,9 @@ COPY package*.json ./
 RUN npm install
 COPY . .
 ARG VITE_API_URL=http://localhost:3333/api
+ARG VITE_MP_PUBLIC_KEY=
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_MP_PUBLIC_KEY=$VITE_MP_PUBLIC_KEY
 RUN npm run build
 
 FROM nginx:alpine

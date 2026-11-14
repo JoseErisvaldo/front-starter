@@ -12,6 +12,8 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@mercadopago/sdk-js": "^0.0.3",
+    "@mercadopago/sdk-react": "^1.0.7",
     "@mui/material": "^9.5.0",
     "@tanstack/react-query": "^5.66.9",
     "axios": "^1.8.1",
