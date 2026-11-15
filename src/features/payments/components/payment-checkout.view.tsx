@@ -1,4 +1,9 @@
-import { useEffect, useState, type ComponentProps, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type ComponentProps,
+  type FormEvent,
+} from "react";
 import {
   Alert,
   Box,
@@ -8,13 +13,14 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from "@mui/material";
@@ -54,7 +60,7 @@ export function PaymentCheckoutView({
   onResult,
 }: Props) {
   const paymentMutation = useCreatePaymentMutation();
-  const [method, setMethod] = useState<"card" | "pix">("card");
+  const [method, setMethod] = useState<"card" | "pix">("pix");
   const [brickError, setBrickError] = useState("");
   const [pixError, setPixError] = useState("");
   const [documentType, setDocumentType] = useState<"CPF" | "CNPJ">("CPF");
@@ -70,12 +76,13 @@ export function PaymentCheckoutView({
         qrCode: paymentStatusQuery.data?.payment.qrCode ?? result.qrCode,
         qrCodeBase64:
           paymentStatusQuery.data?.payment.qrCodeBase64 ?? result.qrCodeBase64,
-        ticketUrl: paymentStatusQuery.data?.payment.ticketUrl ?? result.ticketUrl,
+        ticketUrl:
+          paymentStatusQuery.data?.payment.ticketUrl ?? result.ticketUrl,
       }
     : null;
 
   useEffect(() => {
-    setMethod("card");
+    setMethod("pix");
     setBrickError("");
     setPixError("");
     setDocumentNumber("");
@@ -124,7 +131,9 @@ export function PaymentCheckoutView({
       },
     });
     if (!input.success) {
-      setPixError(input.error.issues[0]?.message ?? "Confira os dados informados.");
+      setPixError(
+        input.error.issues[0]?.message ?? "Confira os dados informados.",
+      );
       return;
     }
 
@@ -159,30 +168,150 @@ export function PaymentCheckoutView({
                 </Typography>
               </Box>
 
-              {!currentPayment && (
-                <Tabs
-                  value={method}
-                  onChange={(_, value: "card" | "pix") => {
-                    setMethod(value);
-                    setBrickError("");
-                    setPixError("");
-                  }}
-                  aria-label="Forma de pagamento"
-                >
-                  <Tab value="card" label="Cartão" />
-                  <Tab value="pix" label="Pix" />
-                </Tabs>
+              {!currentPayment && !paymentMutation.isPending && (
+                <FormControl fullWidth>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Forma de pagamento
+                  </Typography>
+                  <RadioGroup
+                    value={method}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      if (value !== "pix" && value !== "card") return;
+                      setMethod(value);
+                      setBrickError("");
+                      setPixError("");
+                    }}
+                    aria-label="Forma de pagamento"
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, minmax(0, 1fr))",
+                      },
+                      gap: 1,
+                    }}
+                  >
+                    {[
+                      {
+                        value: "pix",
+                        title: "Pix",
+                        description: "QR Code ou Pix copia e cola",
+                      },
+                      {
+                        value: "card",
+                        title: "Cartão",
+                        description: "Crédito ou débito",
+                      },
+                    ].map((option) => (
+                      <FormControlLabel
+                        key={option.value}
+                        value={option.value}
+                        control={
+                          <Radio
+                            icon={
+                              <Box
+                                aria-hidden="true"
+                                sx={{
+                                  width: 20,
+                                  height: 20,
+                                  border: 1,
+                                  borderColor: "divider",
+                                  borderRadius: 0.75,
+                                }}
+                              />
+                            }
+                            checkedIcon={
+                              <Box
+                                aria-hidden="true"
+                                sx={{
+                                  width: 20,
+                                  height: 20,
+                                  display: "grid",
+                                  placeItems: "center",
+                                  bgcolor: "primary.main",
+                                  color: "primary.contrastText",
+                                  borderRadius: 0.75,
+                                  fontSize: 14,
+                                  lineHeight: 1,
+                                }}
+                              >
+                                ✓
+                              </Box>
+                            }
+                          />
+                        }
+                        label={
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 600 }}
+                            >
+                              {option.title}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {option.description}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{
+                          m: 0,
+                          p: 1,
+                          border: 1,
+                          borderColor:
+                            method === option.value
+                              ? "primary.main"
+                              : "divider",
+                          borderRadius: 1,
+                          bgcolor:
+                            method === option.value
+                              ? "rgba(40, 98, 77, 0.05)"
+                              : "background.paper",
+                          "& .MuiFormControlLabel-label": { flex: 1 },
+                        }}
+                      />
+                    ))}
+                  </RadioGroup>
+                </FormControl>
               )}
 
-              {method === "card" && !publicKey && !currentPayment && (
-                <Alert severity="warning">
-                  Configure VITE_MP_PUBLIC_KEY no frontend para habilitar o
-                  formulário do Mercado Pago.
-                </Alert>
+              {method === "card" &&
+                !publicKey &&
+                !currentPayment &&
+                !paymentMutation.isPending && (
+                  <Alert severity="warning">
+                    Configure VITE_MP_PUBLIC_KEY no frontend para habilitar o
+                    formulário do Mercado Pago.
+                  </Alert>
+                )}
+              {!paymentMutation.isPending && brickError && (
+                <Alert severity="error">{brickError}</Alert>
               )}
-              {brickError && <Alert severity="error">{brickError}</Alert>}
-              {pixError && <Alert severity="error">{pixError}</Alert>}
-              {paymentMutation.isPending && <CircularProgress size={24} />}
+              {!paymentMutation.isPending && pixError && (
+                <Alert severity="error">{pixError}</Alert>
+              )}
+              {paymentMutation.isPending && (
+                <Box
+                  role="status"
+                  aria-live="polite"
+                  sx={{
+                    display: "grid",
+                    placeItems: "center",
+                    minHeight: 240,
+                    width: "100%",
+                  }}
+                >
+                  <Stack spacing={2} sx={{ alignItems: "center" }}>
+                    <CircularProgress size={32} />
+                    <Typography color="text.secondary">
+                      Processando pagamento…
+                    </Typography>
+                  </Stack>
+                </Box>
+              )}
 
               {currentPayment && (
                 <PaymentStatusFeedback
@@ -230,70 +359,80 @@ export function PaymentCheckoutView({
                 </PaymentStatusFeedback>
               )}
 
-              {!currentPayment && method === "card" && publicKey && (
-                <CardPayment
-                  initialization={{
-                    amount: product.price,
-                    payer: { email: user.email },
-                  }}
-                  onSubmit={submitCard}
-                  onError={(error) => {
-                    logError("mercadoPagoCardBrick", error);
-                    setBrickError(
-                      "O formulário do cartão encontrou um erro. Revise os dados e tente novamente.",
-                    );
-                  }}
-                  locale="pt-BR"
-                />
-              )}
+              {!currentPayment &&
+                !paymentMutation.isPending &&
+                method === "card" &&
+                publicKey && (
+                  <CardPayment
+                    initialization={{
+                      amount: product.price,
+                      payer: { email: user.email },
+                    }}
+                    onSubmit={submitCard}
+                    onError={(error) => {
+                      logError("mercadoPagoCardBrick", error);
+                      setBrickError(
+                        "O formulário do cartão encontrou um erro. Revise os dados e tente novamente.",
+                      );
+                    }}
+                    locale="pt-BR"
+                  />
+                )}
 
-              {!currentPayment && method === "pix" && (
-                <Box component="form" onSubmit={(event) => void submitPix(event)}>
-                  <Stack spacing={2}>
-                    <Typography color="text.secondary">
-                      O código Pix será enviado para {user.email}.
-                    </Typography>
-                    <FormControl fullWidth required>
-                      <InputLabel id="pix-document-type-label">
-                        Documento
-                      </InputLabel>
-                      <Select
-                        labelId="pix-document-type-label"
-                        value={documentType}
-                        label="Documento"
-                        onChange={(event) => {
-                          setDocumentType(event.target.value as "CPF" | "CNPJ");
-                          setDocumentNumber("");
+              {!currentPayment &&
+                !paymentMutation.isPending &&
+                method === "pix" && (
+                  <Box
+                    component="form"
+                    onSubmit={(event) => void submitPix(event)}
+                  >
+                    <Stack spacing={2}>
+                      <Typography color="text.secondary">
+                        O código Pix será enviado para {user.email}.
+                      </Typography>
+                      <FormControl fullWidth required>
+                        <InputLabel id="pix-document-type-label">
+                          Documento
+                        </InputLabel>
+                        <Select
+                          labelId="pix-document-type-label"
+                          value={documentType}
+                          label="Documento"
+                          onChange={(event) => {
+                            setDocumentType(
+                              event.target.value as "CPF" | "CNPJ",
+                            );
+                            setDocumentNumber("");
+                          }}
+                        >
+                          <MenuItem value="CPF">CPF</MenuItem>
+                          <MenuItem value="CNPJ">CNPJ</MenuItem>
+                        </Select>
+                      </FormControl>
+                      <TextField
+                        label={documentType}
+                        value={documentNumber}
+                        onChange={(event) =>
+                          setDocumentNumber(
+                            event.target.value.replace(/\D/g, "").slice(0, 14),
+                          )
+                        }
+                        slotProps={{
+                          htmlInput: { inputMode: "numeric", maxLength: 14 },
                         }}
+                        required
+                        fullWidth
+                      />
+                      <Button
+                        type="submit"
+                        variant="contained"
+                        disabled={paymentMutation.isPending}
                       >
-                        <MenuItem value="CPF">CPF</MenuItem>
-                        <MenuItem value="CNPJ">CNPJ</MenuItem>
-                      </Select>
-                    </FormControl>
-                    <TextField
-                      label={documentType}
-                      value={documentNumber}
-                      onChange={(event) =>
-                        setDocumentNumber(
-                          event.target.value.replace(/\D/g, "").slice(0, 14),
-                        )
-                      }
-                      slotProps={{
-                        htmlInput: { inputMode: "numeric", maxLength: 14 },
-                      }}
-                      required
-                      fullWidth
-                    />
-                    <Button
-                      type="submit"
-                      variant="contained"
-                      disabled={paymentMutation.isPending}
-                    >
-                      Gerar Pix
-                    </Button>
-                  </Stack>
-                </Box>
-              )}
+                        Gerar Pix
+                      </Button>
+                    </Stack>
+                  </Box>
+                )}
             </Stack>
           </DialogContent>
         </>
