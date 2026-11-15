@@ -6,9 +6,17 @@ type Props = {
   user: User | null;
   activePage: "products" | "orders";
   onLogout: () => void;
+  cartCount?: number;
+  onOpenCart?: () => void;
 };
 
-export function StoreHeader({ user, activePage, onLogout }: Props) {
+export function StoreHeader({
+  user,
+  activePage,
+  onLogout,
+  cartCount = 0,
+  onOpenCart,
+}: Props) {
   return (
     <AppBar
       position="static"
@@ -42,6 +50,11 @@ export function StoreHeader({ user, activePage, onLogout }: Props) {
             spacing={{ xs: 0.25, sm: 1 }}
             sx={{ alignItems: "center", flexShrink: 0 }}
           >
+            {activePage === "products" && (
+              <Button color="inherit" onClick={onOpenCart}>
+                Carrinho{cartCount > 0 ? ` (${cartCount})` : ""}
+              </Button>
+            )}
             <Button
               component={RouterLink}
               to="/produtos"

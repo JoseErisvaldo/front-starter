@@ -141,15 +141,20 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Stack spacing={1.5}>
                   <Typography variant="h6">Resumo do pedido</Typography>
-                  <Stack
-                    direction="row"
-                    sx={{ justifyContent: "space-between", gap: 2 }}
-                  >
-                    <Typography color="text.secondary">Produto</Typography>
-                    <Typography sx={{ textAlign: "right" }}>
-                      {payment.productName}
-                    </Typography>
-                  </Stack>
+                  {payment.items.map((item, index) => (
+                    <Stack
+                      key={`${payment.id}-${index}`}
+                      direction="row"
+                      sx={{ justifyContent: "space-between", gap: 2 }}
+                    >
+                      <Typography color="text.secondary">
+                        {item.productName} × {item.quantity}
+                      </Typography>
+                      <Typography sx={{ textAlign: "right" }}>
+                        {formatCurrency(item.lineTotal, item.currency)}
+                      </Typography>
+                    </Stack>
+                  ))}
                   <Stack
                     direction="row"
                     sx={{ justifyContent: "space-between", gap: 2 }}

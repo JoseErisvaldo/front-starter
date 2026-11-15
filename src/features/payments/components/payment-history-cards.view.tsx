@@ -150,7 +150,9 @@ export function PaymentHistoryCardsView({
                     }}
                   >
                     <Typography variant="h6" component="h2" sx={{ overflowWrap: "anywhere" }}>
-                      {payment.productName}
+                      {payment.items.length > 1
+                        ? `${payment.items.length} produtos`
+                        : payment.productName}
                     </Typography>
                     <IconButton
                       size="small"
@@ -165,6 +167,18 @@ export function PaymentHistoryCardsView({
                     >
                       <span aria-hidden="true">⋮</span>
                     </IconButton>
+                  </Stack>
+                  <Stack spacing={0.5}>
+                    {payment.items.map((item, index) => (
+                      <Typography
+                        key={`${payment.id}-${index}`}
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ overflowWrap: "anywhere" }}
+                      >
+                        {item.productName} × {item.quantity}
+                      </Typography>
+                    ))}
                   </Stack>
                   <Chip
                     size="small"

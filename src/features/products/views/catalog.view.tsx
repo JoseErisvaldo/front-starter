@@ -24,7 +24,9 @@ type Props = {
   isLoading: boolean;
   error: string;
   onLogout: () => void;
-  onBuy: (product: Product) => void;
+  onAddToCart: (product: Product) => void;
+  cartCount: number;
+  onOpenCart: () => void;
 };
 
 export function CatalogView({
@@ -34,7 +36,9 @@ export function CatalogView({
   isLoading,
   error,
   onLogout,
-  onBuy,
+  onAddToCart,
+  cartCount,
+  onOpenCart,
 }: Props) {
   const [search, setSearch] = useState("");
   const filteredProducts = useMemo(() => {
@@ -49,7 +53,13 @@ export function CatalogView({
 
   return (
     <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <StoreHeader user={user} activePage="products" onLogout={onLogout} />
+      <StoreHeader
+        user={user}
+        activePage="products"
+        onLogout={onLogout}
+        cartCount={cartCount}
+        onOpenCart={onOpenCart}
+      />
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
         <Stack spacing={3}>
           <Box>
@@ -143,9 +153,9 @@ export function CatalogView({
                       variant="contained"
                       fullWidth
                       disabled={isAuthLoading && !user}
-                      onClick={() => onBuy(product)}
+                      onClick={() => onAddToCart(product)}
                     >
-                      Comprar
+                      Adicionar ao carrinho
                     </Button>
                   </CardActions>
                 </Card>

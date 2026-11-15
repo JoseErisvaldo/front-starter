@@ -8,15 +8,18 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   CircularProgress,
-  Dialog,
   DialogContent,
   DialogTitle,
+  Divider,
+  Drawer,
   FormControl,
   FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
+  Paper,
   Radio,
   RadioGroup,
   Select,
@@ -31,7 +34,7 @@ import { usePaymentStatusQuery } from "../queries/use-payment-status-query";
 import { PaymentStatusFeedback } from "./payment-status-feedback.view";
 import { PixPaymentInstructions } from "./pix-payment-instructions.view";
 import type { PaymentResponse } from "../types/payment.types";
-import type { Product } from "../../products/types/product.types";
+import type { CartItem } from "../../cart/stores/cart.store";
 import type { User } from "../../auth/types/auth.types";
 import { formatCurrency } from "../../../shared/lib/format-currency";
 import { getApiErrorMessage } from "../../../shared/lib/api-error";
@@ -39,10 +42,11 @@ import { logError } from "../../../shared/lib/log-error";
 import { getPaymentState } from "../utils/payment-status";
 
 type Props = {
-  product: Product | null;
+  items: CartItem[];
   user: User;
   result: PaymentResponse["payment"] | null;
   onClose: () => void;
+  onViewOrders: () => void;
   onResult: (payment: PaymentResponse["payment"]) => void;
 };
 
@@ -53,13 +57,21 @@ type CardPaymentSubmit = NonNullable<
 >;
 
 export function PaymentCheckoutView({
-  product,
+  items,
   user,
   result,
   onClose,
+  onViewOrders,
   onResult,
 }: Props) {
   const paymentMutation = useCreatePaymentMutation();
+  const total = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0,
+  );
+  const itemsKey = items
+    .map(({ product, quantity }) => `${product.id}:${quantity}`)
+    .join(",");
   const [method, setMethod] = useState<"card" | "pix">("pix");
   const [brickError, setBrickError] = useState("");
   const [pixError, setPixError] = useState("");
@@ -67,7 +79,7 @@ export function PaymentCheckoutView({
   const [documentNumber, setDocumentNumber] = useState("");
   const paymentStatusQuery = usePaymentStatusQuery(
     result?.id ?? null,
-    Boolean(product),
+    items.length > 0,
   );
   const currentPayment = result
     ? {
@@ -80,6 +92,7 @@ export function PaymentCheckoutView({
           paymentStatusQuery.data?.payment.ticketUrl ?? result.ticketUrl,
       }
     : null;
+  const isPaymentError = Boolean(brickError || pixError);
 
   useEffect(() => {
     setMethod("pix");
@@ -87,10 +100,10 @@ export function PaymentCheckoutView({
     setPixError("");
     setDocumentNumber("");
     paymentMutation.reset();
-  }, [product?.id]);
+  }, [itemsKey]);
 
   const submitCard: CardPaymentSubmit = async (formData, additionalData) => {
-    if (!product) throw new Error("Nenhum produto selecionado");
+    if (items.length === 0) throw new Error("O carrinho está vazio");
     if (!additionalData?.paymentTypeId) {
       throw new Error("Não foi possível identificar o tipo do cartão");
     }
@@ -98,7 +111,10 @@ export function PaymentCheckoutView({
     setBrickError("");
     const input = createPaymentInputSchema.parse({
       method: "card",
-      productId: product.id,
+      items: items.map(({ product, quantity }) => ({
+        productId: product.id,
+        quantity,
+      })),
       token: formData.token,
       paymentMethodId: formData.payment_method_id,
       paymentTypeId: additionalData.paymentTypeId,
@@ -119,12 +135,15 @@ export function PaymentCheckoutView({
 
   async function submitPix(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!product) return;
+    if (items.length === 0) return;
 
     setPixError("");
     const input = createPaymentInputSchema.safeParse({
       method: "pix",
-      productId: product.id,
+      items: items.map(({ product, quantity }) => ({
+        productId: product.id,
+        quantity,
+      })),
       identification: {
         type: documentType,
         number: documentNumber,
@@ -146,11 +165,43 @@ export function PaymentCheckoutView({
   }
 
   return (
-    <Dialog open={Boolean(product)} onClose={onClose} fullWidth maxWidth="sm">
-      {product && (
-        <>
-          <DialogTitle sx={{ pr: 7 }}>
-            Finalizar compra
+    <Drawer
+      anchor="right"
+      open={items.length > 0}
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: "100%", sm: 560 },
+            maxWidth: "100vw",
+            display: "flex",
+            flexDirection: "column",
+          },
+        },
+      }}
+    >
+      {items.length > 0 && (
+        <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          {!paymentMutation.isPending && !isPaymentError && (
+          <DialogTitle
+            sx={{
+              pr: 7,
+              borderBottom: 1,
+              borderColor: "divider",
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+            }}
+          >
+            <Typography component="span" variant="h6">
+              Finalizar compra
+            </Typography>
+            <Chip
+              size="small"
+              variant="outlined"
+              label="Mercado Pago"
+              sx={{ color: "text.secondary" }}
+            />
             <IconButton
               aria-label="Fechar checkout"
               onClick={onClose}
@@ -159,18 +210,160 @@ export function PaymentCheckoutView({
               <span aria-hidden="true">×</span>
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers>
-            <Stack spacing={2.5}>
-              <Box>
-                <Typography variant="h6">{product.name}</Typography>
-                <Typography color="text.secondary">
-                  {formatCurrency(product.price, product.currency)}
-                </Typography>
+          )}
+          <DialogContent
+            dividers={!paymentMutation.isPending}
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              p: paymentMutation.isPending || isPaymentError
+                ? 0
+                : { xs: 2, sm: 3 },
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {paymentMutation.isPending ? (
+              <Box
+                role="status"
+                aria-live="polite"
+                sx={{
+                  flex: 1,
+                  width: "100%",
+                  minHeight: 0,
+                  display: "grid",
+                  placeItems: "center",
+                }}
+              >
+                <Stack spacing={2} sx={{ alignItems: "center" }}>
+                  <CircularProgress size={48} />
+                  <Typography color="text.secondary">
+                    Processando pagamento…
+                  </Typography>
+                </Stack>
               </Box>
+            ) : isPaymentError ? (
+              <Box
+                sx={{
+                  flex: 1,
+                  width: "100%",
+                  minHeight: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  p: { xs: 2, sm: 3 },
+                }}
+              >
+                <PaymentStatusFeedback
+                  status="failed"
+                  statusDetail={null}
+                  pendingMessage=""
+                  message={brickError || pixError}
+                  actions={
+                    <Button
+                      variant="contained"
+                      onClick={() => {
+                        setBrickError("");
+                        setPixError("");
+                      }}
+                    >
+                      Tentar novamente
+                    </Button>
+                  }
+                />
+              </Box>
+            ) : (
+            <Stack spacing={3}>
+              {!currentPayment && <Paper
+                variant="outlined"
+                sx={{
+                  p: { xs: 1.5, sm: 2 },
+                  bgcolor: "rgba(40, 98, 77, 0.025)",
+                }}
+              >
+                <Stack spacing={1.5}>
+                  <Stack
+                    direction="row"
+                    sx={{
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Typography
+                      variant="overline"
+                      color="text.secondary"
+                      sx={{ fontWeight: 700 }}
+                    >
+                      Resumo do pedido
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={`${items.reduce((sum, item) => sum + item.quantity, 0)} ${items.reduce((sum, item) => sum + item.quantity, 0) === 1 ? "item" : "itens"}`}
+                    />
+                  </Stack>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(0, 1fr) 32px 76px 76px",
+                      alignItems: "center",
+                      gap: 0.75,
+                    }}
+                  >
+                    {["Produto", "Qtd.", "Unit.", "Total"].map((label) => (
+                      <Typography
+                        key={label}
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ textAlign: label === "Produto" ? "left" : "right" }}
+                      >
+                        {label}
+                      </Typography>
+                    ))}
+                    {items.map(({ product, quantity }) => (
+                      <Box
+                        key={product.id}
+                        sx={{ display: "contents" }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{ overflowWrap: "anywhere", py: 1 }}
+                        >
+                          {product.name}
+                        </Typography>
+                        <Typography variant="body2" sx={{ textAlign: "right" }}>
+                          {quantity}
+                        </Typography>
+                        <Typography variant="body2" sx={{ textAlign: "right" }}>
+                          {formatCurrency(product.price, product.currency)}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ textAlign: "right", fontWeight: 600 }}
+                        >
+                          {formatCurrency(product.price * quantity, product.currency)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                  <Divider />
+                  <Stack
+                    direction="row"
+                    sx={{ alignItems: "center", justifyContent: "space-between" }}
+                  >
+                    <Typography sx={{ fontWeight: 600 }}>Total</Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{ color: "primary.main", fontWeight: 700 }}
+                    >
+                      {formatCurrency(total, "BRL")}
+                    </Typography>
+                  </Stack>
+                </Stack>
+              </Paper>}
 
               {!currentPayment && !paymentMutation.isPending && (
                 <FormControl fullWidth>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                  <Typography variant="subtitle1" sx={{ mb: 1 }}>
                     Forma de pagamento
                   </Typography>
                   <RadioGroup
@@ -287,32 +480,6 @@ export function PaymentCheckoutView({
                     formulário do Mercado Pago.
                   </Alert>
                 )}
-              {!paymentMutation.isPending && brickError && (
-                <Alert severity="error">{brickError}</Alert>
-              )}
-              {!paymentMutation.isPending && pixError && (
-                <Alert severity="error">{pixError}</Alert>
-              )}
-              {paymentMutation.isPending && (
-                <Box
-                  role="status"
-                  aria-live="polite"
-                  sx={{
-                    display: "grid",
-                    placeItems: "center",
-                    minHeight: 240,
-                    width: "100%",
-                  }}
-                >
-                  <Stack spacing={2} sx={{ alignItems: "center" }}>
-                    <CircularProgress size={32} />
-                    <Typography color="text.secondary">
-                      Processando pagamento…
-                    </Typography>
-                  </Stack>
-                </Box>
-              )}
-
               {currentPayment && (
                 <PaymentStatusFeedback
                   status={currentPayment.status}
@@ -325,7 +492,22 @@ export function PaymentCheckoutView({
                   }
                   actions={
                     <Stack direction="row" spacing={1}>
-                      <Button variant="contained" onClick={onClose}>
+                      <Button
+                        variant="contained"
+                        onClick={() => {
+                          if (
+                            getPaymentState(
+                              currentPayment.status,
+                              currentPayment.statusDetail,
+                              currentPayment.expiresAt,
+                            ) === "success"
+                          ) {
+                            onViewOrders();
+                          } else {
+                            onClose();
+                          }
+                        }}
+                      >
                         {getPaymentState(
                           currentPayment.status,
                           currentPayment.statusDetail,
@@ -360,37 +542,47 @@ export function PaymentCheckoutView({
               )}
 
               {!currentPayment &&
-                !paymentMutation.isPending &&
                 method === "card" &&
                 publicKey && (
-                  <CardPayment
-                    initialization={{
-                      amount: product.price,
-                      payer: { email: user.email },
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      p: { xs: 1.5, sm: 2 },
+                      minWidth: 0,
+                      borderColor: "divider",
+                      borderRadius: 1.5,
                     }}
-                    onSubmit={submitCard}
-                    onError={(error) => {
-                      logError("mercadoPagoCardBrick", error);
-                      setBrickError(
-                        "O formulário do cartão encontrou um erro. Revise os dados e tente novamente.",
-                      );
-                    }}
-                    locale="pt-BR"
-                  />
+                  >
+                    <CardPayment
+                      initialization={{
+                        amount: total,
+                        payer: { email: user.email },
+                      }}
+                      onSubmit={submitCard}
+                      onError={(error) => {
+                        logError("mercadoPagoCardBrick", error);
+                      }}
+                      locale="pt-BR"
+                    />
+                  </Paper>
                 )}
 
-              {!currentPayment &&
-                !paymentMutation.isPending &&
-                method === "pix" && (
-                  <Box
-                    component="form"
-                    onSubmit={(event) => void submitPix(event)}
-                  >
-                    <Stack spacing={2}>
-                      <Typography color="text.secondary">
+              {!currentPayment && method === "pix" && (
+                  <Stack spacing={1.5}>
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Pagar com Pix
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
                         O código Pix será enviado para {user.email}.
                       </Typography>
-                      <FormControl fullWidth required>
+                    </Box>
+                    <Box
+                      component="form"
+                      onSubmit={(event) => void submitPix(event)}
+                    >
+                      <Stack spacing={2}>
+                        <FormControl fullWidth required>
                         <InputLabel id="pix-document-type-label">
                           Documento
                         </InputLabel>
@@ -408,8 +600,8 @@ export function PaymentCheckoutView({
                           <MenuItem value="CPF">CPF</MenuItem>
                           <MenuItem value="CNPJ">CNPJ</MenuItem>
                         </Select>
-                      </FormControl>
-                      <TextField
+                        </FormControl>
+                        <TextField
                         label={documentType}
                         value={documentNumber}
                         onChange={(event) =>
@@ -422,21 +614,23 @@ export function PaymentCheckoutView({
                         }}
                         required
                         fullWidth
-                      />
-                      <Button
+                        />
+                        <Button
                         type="submit"
                         variant="contained"
                         disabled={paymentMutation.isPending}
-                      >
-                        Gerar Pix
-                      </Button>
-                    </Stack>
-                  </Box>
+                        >
+                          Gerar Pix
+                        </Button>
+                      </Stack>
+                    </Box>
+                  </Stack>
                 )}
             </Stack>
+            )}
           </DialogContent>
-        </>
+        </Box>
       )}
-    </Dialog>
+    </Drawer>
   );
 }

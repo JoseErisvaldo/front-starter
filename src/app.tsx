@@ -8,8 +8,10 @@ import {
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
-import type { Product } from "./features/products/types/product.types";
 import type { PaymentResponse } from "./features/payments/types/payment.types";
+import type { CartItem } from "./features/cart/stores/cart.store";
+import { useCartStore } from "./features/cart/stores/cart.store";
+import { CartDrawer } from "./features/cart/components/cart-drawer.view";
 import { AuthFormView } from "./features/auth/components/auth-form.view";
 import { useMeQuery } from "./features/auth/queries/use-me-query";
 import { authQueryKeys } from "./features/auth/endpoints-keys/auth.keys";
@@ -21,6 +23,8 @@ import { OrdersView } from "./features/home/views/orders.view";
 import { useHome } from "./features/home/hooks/use-home";
 import { getApiErrorMessage } from "./shared/lib/api-error";
 import { TOKEN_STORAGE_KEY } from "./shared/services/http-client";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function getRedirectTo(state: unknown): string | null {
   if (!state || typeof state !== "object" || !("from" in state)) return null;
@@ -50,42 +54,57 @@ function CatalogRoute() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [checkoutItems, setCheckoutItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const cartItems = useCartStore((state) => state.items);
+  const addItem = useCartStore((state) => state.addItem);
+  const clearCart = useCartStore((state) => state.clear);
   const [paymentResult, setPaymentResult] = useState<
     PaymentResponse["payment"] | null
   >(null);
-  const redirectProductId = searchParams.get("comprar");
+  const openCartFromRedirect = searchParams.get("carrinho");
 
   useEffect(() => {
-    if (!user || !redirectProductId || !productsQuery.data) return;
-    const product = productsQuery.data.find(
-      (item) => item.id === redirectProductId,
-    );
-    if (product) setSelectedProduct(product);
+    if (!user || !openCartFromRedirect) return;
+    setIsCartOpen(true);
     const nextSearchParams = new URLSearchParams(searchParams);
-    nextSearchParams.delete("comprar");
+    nextSearchParams.delete("carrinho");
     setSearchParams(nextSearchParams, { replace: true });
   }, [
-    productsQuery.data,
-    redirectProductId,
+    openCartFromRedirect,
     searchParams,
     setSearchParams,
     user,
   ]);
 
-  function handleBuy(product: Product) {
-    if (!user) {
-      navigate("/login", {
-        state: { from: `/produtos?comprar=${encodeURIComponent(product.id)}` },
-      });
+  function handleAddToCart(product: NonNullable<typeof productsQuery.data>[number]) {
+    const existing = cartItems.find((item) => item.product.id === product.id);
+    if (existing?.quantity === 99) {
+      toast.info("Limite máximo de unidades atingido.");
       return;
     }
+    addItem(product);
+    toast.success(
+      existing
+        ? "Quantidade aumentada no carrinho."
+        : "Produto adicionado ao carrinho.",
+    );
+  }
+
+  function handleCheckout(items: CartItem[]) {
+    if (!user) {
+      setIsCartOpen(false);
+      navigate("/login", { state: { from: "/produtos?carrinho=1" } });
+      return;
+    }
+    setCheckoutItems(items);
     setPaymentResult(null);
-    setSelectedProduct(product);
+    setIsCartOpen(false);
   }
 
   function handlePaymentResult(payment: PaymentResponse["payment"]) {
     setPaymentResult(payment);
+    clearCart();
     void queryClient.invalidateQueries({ queryKey: paymentQueryKeys.all });
   }
 
@@ -93,6 +112,16 @@ function CatalogRoute() {
 
   return (
     <>
+      <ToastContainer
+        position="top-right"
+        autoClose={2500}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <CatalogView
         user={user ?? null}
         isAuthLoading={isAuthLoading}
@@ -104,14 +133,25 @@ function CatalogRoute() {
             : ""
         }
         onLogout={logout}
-        onBuy={handleBuy}
+        onAddToCart={handleAddToCart}
+        cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+        onOpenCart={() => setIsCartOpen(true)}
+      />
+      <CartDrawer
+        open={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        onCheckout={handleCheckout}
       />
       {user && (
         <PaymentCheckoutView
-          product={selectedProduct}
+          items={checkoutItems}
           user={user}
           result={paymentResult}
-          onClose={() => setSelectedProduct(null)}
+          onClose={() => setCheckoutItems([])}
+          onViewOrders={() => {
+            setCheckoutItems([]);
+            navigate("/pedidos");
+          }}
           onResult={handlePaymentResult}
         />
       )}

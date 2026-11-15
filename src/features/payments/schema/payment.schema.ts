@@ -5,10 +5,17 @@ const identificationSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('CNPJ'), number: z.string().regex(/^\d{14}$/, 'Informe um CNPJ com 14 dígitos') }),
 ])
 
+const itemsSchema = z.array(
+  z.object({
+    productId: z.string().min(1),
+    quantity: z.number().int().min(1).max(99),
+  }),
+).min(1).max(50)
+
 export const createPaymentInputSchema = z.discriminatedUnion('method', [
   z.object({
     method: z.literal('card'),
-    productId: z.string().min(1),
+    items: itemsSchema,
     token: z.string().min(1),
     paymentMethodId: z.string().min(1),
     paymentTypeId: z.enum(['credit_card', 'debit_card', 'prepaid_card']),
@@ -17,7 +24,7 @@ export const createPaymentInputSchema = z.discriminatedUnion('method', [
   }),
   z.object({
     method: z.literal('pix'),
-    productId: z.string().min(1),
+    items: itemsSchema,
     identification: identificationSchema,
   }),
 ])
@@ -29,6 +36,13 @@ export const paymentResponseSchema = z.object({
     statusDetail: z.string().nullable(),
     amount: z.number(),
     productName: z.string(),
+    items: z.array(z.object({
+      productName: z.string(),
+      quantity: z.number().int(),
+      unitPrice: z.number(),
+      lineTotal: z.number(),
+      currency: z.string(),
+    })),
     currency: z.string().optional(),
     createdAt: z.string().optional(),
     providerOrderId: z.string().nullable(),
@@ -70,13 +84,19 @@ export const paymentListResponseSchema = z.object({
   payments: z.array(
     z.object({
       id: z.string(),
-      productId: z.string(),
       amount: z.number(),
       paymentMethod: z.string(),
       status: z.string(),
       statusDetail: z.string().nullable(),
       providerOrderId: z.string().nullable(),
       productName: z.string(),
+      items: z.array(z.object({
+        productName: z.string(),
+        quantity: z.number().int(),
+        unitPrice: z.number(),
+        lineTotal: z.number(),
+        currency: z.string(),
+      })),
       currency: z.string(),
       createdAt: z.string(),
       expiresAt: z.string().nullable(),
