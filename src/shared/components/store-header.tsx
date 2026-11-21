@@ -1,6 +1,6 @@
 import { AppBar, Box, Button, Container, Link, Stack, Toolbar, Typography } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
-import type { User } from "../../features/auth/types/auth.types";
+import type { User } from "../../features/public/auth/types/auth.types";
 
 type Props = {
   user: User | null;
