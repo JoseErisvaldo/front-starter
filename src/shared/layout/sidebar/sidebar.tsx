@@ -9,7 +9,7 @@ import {
   SvgIcon,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 
 export const SIDEBAR_WIDTH = { xs: 80, sm: 280 };
 
@@ -67,6 +67,8 @@ type Props = {
 };
 
 export function Sidebar({ onLogout }: Props) {
+  const { pathname } = useLocation();
+
   return (
     <Drawer
       variant="permanent"
@@ -104,7 +106,7 @@ export function Sidebar({ onLogout }: Props) {
           <ListItemButton
             component={RouterLink}
             to="/admin"
-            selected
+            selected={pathname === "/admin"}
             aria-label="Início"
             sx={{
               minHeight: 48,
@@ -126,6 +128,32 @@ export function Sidebar({ onLogout }: Props) {
               sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
             />
           </ListItemButton>
+        <ListItemButton
+          component={RouterLink}
+          to="/admin/conta"
+          selected={pathname === "/admin/conta"}
+          aria-label="Minha conta"
+          sx={{
+            minHeight: 48,
+            mt: 0.5,
+            borderRadius: 2,
+            px: { xs: 1.5, sm: 2 },
+            color: "#66766b",
+            "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+            "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+            "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+            <SvgIcon>
+              <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z" />
+            </SvgIcon>
+          </ListItemIcon>
+          <ListItemText
+            primary="Minha conta"
+            sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+          />
+        </ListItemButton>
         </List>
 
         <Box sx={{ flex: 1 }} />

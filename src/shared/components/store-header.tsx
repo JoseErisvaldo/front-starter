@@ -4,7 +4,7 @@ import type { User } from "../../features/public/auth/types/auth.types";
 
 type Props = {
   user: User | null;
-  activePage: "products" | "orders";
+  activePage: "products" | "orders" | "account";
   onLogout: () => void;
   cartCount?: number;
   onOpenCart?: () => void;
@@ -77,26 +77,50 @@ export function StoreHeader({
             </Button>
             {user ? (
               <>
-                <Button
-                  component={RouterLink}
-                  to="/pedidos"
-                  color="inherit"
-                  variant="text"
-                  sx={{
-                    display:
-                      activePage === "orders"
-                        ? { xs: "none", sm: "inline-flex" }
-                        : "inline-flex",
-                    color: activePage === "orders" ? "primary.main" : "text.primary",
-                    bgcolor: activePage === "orders" ? "rgba(40, 98, 77, 0.08)" : undefined,
-                    "&:hover": { bgcolor: "rgba(40, 98, 77, 0.08)" },
-                    minWidth: "auto",
-                    px: { xs: 1, sm: 1.5 },
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Meus pedidos
-                </Button>
+                {user.role === "USER" && (
+                  <>
+                    <Button
+                      component={RouterLink}
+                      to="/pedidos"
+                      color="inherit"
+                      variant="text"
+                      sx={{
+                        display:
+                          activePage === "orders"
+                            ? { xs: "none", sm: "inline-flex" }
+                            : "inline-flex",
+                        color: activePage === "orders" ? "primary.main" : "text.primary",
+                        bgcolor: activePage === "orders" ? "rgba(40, 98, 77, 0.08)" : undefined,
+                        "&:hover": { bgcolor: "rgba(40, 98, 77, 0.08)" },
+                        minWidth: "auto",
+                        px: { xs: 1, sm: 1.5 },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Meus pedidos
+                    </Button>
+                    <Button
+                      component={RouterLink}
+                      to="/conta"
+                      color="inherit"
+                      variant="text"
+                      sx={{
+                        display:
+                          activePage === "account"
+                            ? { xs: "none", sm: "inline-flex" }
+                            : "inline-flex",
+                        color: activePage === "account" ? "primary.main" : "text.primary",
+                        bgcolor: activePage === "account" ? "rgba(40, 98, 77, 0.08)" : undefined,
+                        "&:hover": { bgcolor: "rgba(40, 98, 77, 0.08)" },
+                        minWidth: "auto",
+                        px: { xs: 1, sm: 1.5 },
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Minha conta
+                    </Button>
+                  </>
+                )}
                 <Button color="inherit" onClick={onLogout}>
                   Sair
                 </Button>

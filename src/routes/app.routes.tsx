@@ -1,7 +1,9 @@
 import { Navigate, type RouteObject } from 'react-router-dom'
 import { AuthGuard } from '../features/private/guards/auth.guard'
 import { AdminRoute } from '../features/private/admin/routes/admin.route'
+import { AdminAccountRoute } from '../features/private/admin/account/routes/admin-account.route'
 import { OrdersRoute } from '../features/private/user/home/routes/orders.route'
+import { AccountRoute } from '../features/private/user/account/routes/account.route'
 import { AuthRoute } from '../features/public/auth/routes/auth.route'
 import { CatalogRoute } from '../features/public/products/routes/catalog.route'
 
@@ -13,11 +15,13 @@ const publicRoutes: RouteObject[] = [
 ]
 
 const userPrivateRoutes: RouteObject[] = [
+  { path: '/conta', element: <AccountRoute /> },
   { path: '/pedidos', element: <OrdersRoute /> },
 ]
 
 const adminRoutes: RouteObject[] = [
-  { path: '/admin/*', element: <AdminRoute /> },
+  { path: '/admin', element: <AdminRoute /> },
+  { path: '/admin/conta', element: <AdminAccountRoute /> },
 ]
 
 export const appRoutes: RouteObject[] = [

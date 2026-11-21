@@ -1,10 +1,11 @@
 import { z } from 'zod'
+import { USER_ROLES } from '../../../../shared/i18n/user-role'
 
 export const userSchema = z.object({
   id: z.string(),
   name: z.string(),
   email: z.string().email(),
-  role: z.enum(['USER', 'ADMIN', 'MODERATOR']),
+  role: z.enum(USER_ROLES),
   createdAt: z.string(),
 })
 
