@@ -1,5 +1,5 @@
-import { lazy, Suspense } from 'react'
-import { Box, CircularProgress } from '@mui/material'
+import { useEffect, useState, type ComponentType } from 'react'
+import { Alert, Button, Stack } from '@mui/material'
 import { Navigate, type RouteObject } from 'react-router-dom'
 import { AuthGuard } from '../features/private/guards/auth.guard'
 import { AdminRoute } from '../features/private/admin/routes/admin.route'
@@ -8,23 +8,74 @@ import { OrdersRoute } from '../features/private/user/home/routes/orders.route'
 import { AccountRoute } from '../features/private/user/account/routes/account.route'
 import { AuthRoute } from '../features/public/auth/routes/auth.route'
 import { CatalogRoute } from '../features/public/products/routes/catalog.route'
+import { LayoutAdmin } from '../shared/layout/layout-admin'
+import { AdminTableSkeleton } from '../shared/components/admin-table-skeleton'
+import { useLogout } from '../features/public/auth/hooks/use-logout'
 
-const AdminProductsRoute = lazy(() =>
-  import('../features/private/admin/products/routes/admin-products.route').then((module) => ({
-    default: module.AdminProductsRoute,
-  })),
-)
-const AdminOrdersRoute = lazy(() =>
-  import('../features/private/admin/orders/routes/admin-orders.route').then((module) => ({
-    default: module.AdminOrdersRoute,
-  })),
-)
+const loadAdminProductsRoute = () =>
+  import('../features/private/admin/products/routes/admin-products.route').then(
+    (module) => module.AdminProductsRoute,
+  )
 
-function AdminRouteLoading() {
+const loadAdminOrdersRoute = () =>
+  import('../features/private/admin/orders/routes/admin-orders.route').then(
+    (module) => module.AdminOrdersRoute,
+  )
+
+function AdminRouteLoader({ title, subtitle, columns, toolbar = false, loadRoute }: {
+  title: string
+  subtitle: string
+  columns: number
+  toolbar?: boolean
+  loadRoute: () => Promise<ComponentType>
+}) {
+  const logout = useLogout()
+  const [RouteComponent, setRouteComponent] = useState<ComponentType | null>(null)
+  const [loadError, setLoadError] = useState('')
+  const [retryCount, setRetryCount] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    setLoadError('')
+    loadRoute().then((component) => {
+      if (active) setRouteComponent(() => component)
+    }).catch((error: unknown) => {
+      if (active) {
+        setLoadError(
+          error instanceof Error
+            ? `Não foi possível carregar esta tela: ${error.message}`
+            : 'Não foi possível carregar esta tela.',
+        )
+      }
+    })
+
+    return () => {
+      active = false
+    }
+  }, [loadRoute, retryCount])
+
+  if (RouteComponent) return <RouteComponent />
+
   return (
-    <Box sx={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
-      <CircularProgress size={28} />
-    </Box>
+    <LayoutAdmin title={title} subtitle={subtitle} onLogout={logout}>
+      {loadError ? (
+        <Stack spacing={2}>
+          <Alert severity="error">{loadError}</Alert>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setRouteComponent(null)
+              setRetryCount((count) => count + 1)
+            }}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            Tentar novamente
+          </Button>
+        </Stack>
+      ) : (
+        <AdminTableSkeleton columns={columns} toolbar={toolbar} />
+      )}
+    </LayoutAdmin>
   )
 }
 
@@ -45,11 +96,28 @@ const adminRoutes: RouteObject[] = [
   { path: '/admin/conta', element: <AdminAccountRoute /> },
   {
     path: '/admin/produtos',
-    element: <Suspense fallback={<AdminRouteLoading />}><AdminProductsRoute /></Suspense>,
+    element: (
+      <AdminRouteLoader
+        key="admin-products"
+        title="Produtos"
+        subtitle="Cadastre e acompanhe os produtos disponíveis para venda."
+        columns={5}
+        loadRoute={loadAdminProductsRoute}
+      />
+    ),
   },
   {
     path: '/admin/pedidos',
-    element: <Suspense fallback={<AdminRouteLoading />}><AdminOrdersRoute /></Suspense>,
+    element: (
+      <AdminRouteLoader
+        key="admin-orders"
+        title="Pedidos"
+        subtitle="Consulte os pedidos realizados e os dados dos clientes."
+        columns={8}
+        toolbar
+        loadRoute={loadAdminOrdersRoute}
+      />
+    ),
   },
 ]
 

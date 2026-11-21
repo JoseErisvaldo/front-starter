@@ -1,4 +1,4 @@
-import { Alert, Badge, Chip, IconButton, Paper, Skeleton, Stack, SvgIcon } from '@mui/material'
+import { Alert, Badge, Chip, IconButton, Paper, Stack, SvgIcon } from '@mui/material'
 import {
   DataGrid,
   GridActionsCellItem,
@@ -15,6 +15,7 @@ import {
   translatePaymentStatus,
 } from '../../../../../shared/i18n/payment'
 import type { AdminOrder } from '../schema/admin-orders.schema'
+import { AdminTableSkeleton } from '../../../../../shared/components/admin-table-skeleton'
 
 type Props = {
   orders: AdminOrder[]
@@ -147,7 +148,7 @@ export function AdminOrdersView({
     },
   ], [onViewDetails])
 
-  if (isLoading) return <Skeleton variant="rounded" height={360} />
+  if (isLoading) return <AdminTableSkeleton columns={8} toolbar />
   if (error) return <Alert severity="error">{error}</Alert>
 
   return (

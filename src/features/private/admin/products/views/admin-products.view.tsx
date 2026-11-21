@@ -1,4 +1,4 @@
-import { Alert, Chip, Paper, Skeleton, Stack, SvgIcon } from '@mui/material'
+import { Alert, Chip, Paper, Stack, SvgIcon } from '@mui/material'
 import {
   DataGrid,
   GridActionsCellItem,
@@ -11,6 +11,7 @@ import { useMemo } from 'react'
 import type { AdminProduct } from '../schema/admin-products.schema'
 import { formatBrazilianCurrency } from '../../../../../shared/utils/format-brazilian-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
+import { AdminTableSkeleton } from '../../../../../shared/components/admin-table-skeleton'
 
 type Props = {
   products: AdminProduct[]
@@ -108,7 +109,7 @@ export function AdminProductsView({
     },
   ], [onEditProduct, onToggleActive, pendingProductId])
 
-  if (isLoading) return <Skeleton variant="rounded" height={220} />
+  if (isLoading) return <AdminTableSkeleton columns={5} />
   if (error) return <Alert severity="error">{error}</Alert>
 
   return (

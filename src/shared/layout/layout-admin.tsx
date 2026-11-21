@@ -7,8 +7,11 @@ import {
   Stack,
   SvgIcon,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material'
-import { SIDEBAR_WIDTH, Sidebar } from './sidebar/sidebar'
+import { MobileSidebarBar, SIDEBAR_WIDTH, Sidebar } from './sidebar/sidebar'
+import { useSidebarStore } from './sidebar/sidebar.store'
 
 export type LayoutAdminAction = {
   id: string
@@ -33,6 +36,11 @@ type Props = {
 }
 
 export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children }: Props) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const sidebarExpanded = useSidebarStore((state) => state.expanded)
+  const toggleSidebar = useSidebarStore((state) => state.toggle)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [activeActionId, setActiveActionId] = useState<string | null>(null)
   const activeAction = actions.find((action) => action.id === activeActionId)
   const closeDrawer = () => setActiveActionId(null)
@@ -43,16 +51,23 @@ export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children 
     setActiveActionId(id)
   }
   const childrenContent = typeof children === 'function' ? children({ openAction }) : children
-
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f2f6f3' }}>
-      <Sidebar onLogout={onLogout} />
+      {isMobile && <MobileSidebarBar onOpen={() => setMobileSidebarOpen(true)} />}
+      <Sidebar
+        onLogout={onLogout}
+        expanded={sidebarExpanded}
+        mobileOpen={mobileSidebarOpen}
+        onToggle={toggleSidebar}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
       <Box
         component="main"
         sx={{
-          ml: { xs: `${SIDEBAR_WIDTH.xs}px`, sm: `${SIDEBAR_WIDTH.sm}px` },
+          ml: isMobile ? 0 : sidebarExpanded ? `${SIDEBAR_WIDTH.expanded}px` : `${SIDEBAR_WIDTH.collapsed}px`,
           minHeight: '100vh',
           p: { xs: 2, sm: 3, md: 5 },
+          pt: { xs: 9, sm: 3, md: 5 },
         }}
       >
         <Stack spacing={3}>
@@ -66,12 +81,20 @@ export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children 
             }}
           >
             <Box>
-              <Typography variant="h4" component="h1" sx={{ color: '#173d30', fontWeight: 700 }}>
-                {title}
-              </Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>
-                {subtitle}
-              </Typography>
+              <Stack
+                direction={isMobile ? 'column' : 'row'}
+                spacing={1}
+                sx={{ alignItems: 'flex-start' }}
+              >
+                <Box>
+                  <Typography variant="h4" component="h1" sx={{ color: '#173d30', fontWeight: 700 }}>
+                    {title}
+                  </Typography>
+                  <Typography color="text.secondary" sx={{ mt: 1 }}>
+                    {subtitle}
+                  </Typography>
+                </Box>
+              </Stack>
             </Box>
             {actions.some((action) => action.label || action.icon) && (
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>

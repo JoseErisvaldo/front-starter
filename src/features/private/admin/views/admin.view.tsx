@@ -1,22 +1,37 @@
-import { Box, Paper, Typography } from "@mui/material";
-import { BrandMark, SIDEBAR_WIDTH, Sidebar } from "../../../../shared/layout/sidebar/sidebar";
+import { Box, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { useState } from "react";
+import { BrandMark, MobileSidebarBar, SIDEBAR_WIDTH, Sidebar } from "../../../../shared/layout/sidebar/sidebar";
+import { useSidebarStore } from "../../../../shared/layout/sidebar/sidebar.store";
 
 type Props = {
   onLogout: () => void;
 };
 
 export function AdminView({ onLogout }: Props) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const sidebarExpanded = useSidebarStore((state) => state.expanded);
+  const toggleSidebar = useSidebarStore((state) => state.toggle);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "#f2f6f3" }}>
-      <Sidebar onLogout={onLogout} />
+      {isMobile && <MobileSidebarBar onOpen={() => setMobileSidebarOpen(true)} />}
+      <Sidebar
+        onLogout={onLogout}
+        expanded={sidebarExpanded}
+        mobileOpen={mobileSidebarOpen}
+        onToggle={toggleSidebar}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
       <Box
         component="main"
         sx={{
-          ml: { xs: `${SIDEBAR_WIDTH.xs}px`, sm: `${SIDEBAR_WIDTH.sm}px` },
+          ml: isMobile ? 0 : sidebarExpanded ? `${SIDEBAR_WIDTH.expanded}px` : `${SIDEBAR_WIDTH.collapsed}px`,
           minHeight: "100vh",
           display: "grid",
           placeItems: "center",
           p: { xs: 2, sm: 4, md: 6 },
+          pt: { xs: 9, sm: 4, md: 6 },
         }}
       >
         <Paper

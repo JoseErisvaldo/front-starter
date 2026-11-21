@@ -1,6 +1,8 @@
-import { Box, Card, CardContent, Chip, Container, Stack, Typography } from '@mui/material'
+import { Box, Card, CardContent, Chip, Container, Stack, Typography, useMediaQuery, useTheme } from '@mui/material'
+import { useState } from 'react'
 import type { User } from '../../../../public/auth/types/auth.types'
-import { SIDEBAR_WIDTH, Sidebar } from '../../../../../shared/layout/sidebar/sidebar'
+import { MobileSidebarBar, SIDEBAR_WIDTH, Sidebar } from '../../../../../shared/layout/sidebar/sidebar'
+import { useSidebarStore } from '../../../../../shared/layout/sidebar/sidebar.store'
 import { translateUserRole } from '../../../../../shared/i18n/user-role'
 
 type Props = {
@@ -13,28 +15,49 @@ function formatDate(value: string) {
 }
 
 export function AdminAccountView({ user, onLogout }: Props) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const sidebarExpanded = useSidebarStore((state) => state.expanded)
+  const toggleSidebar = useSidebarStore((state) => state.toggle)
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f2f6f3' }}>
-      <Sidebar onLogout={onLogout} />
+      {isMobile && <MobileSidebarBar onOpen={() => setMobileSidebarOpen(true)} />}
+      <Sidebar
+        onLogout={onLogout}
+        expanded={sidebarExpanded}
+        mobileOpen={mobileSidebarOpen}
+        onToggle={toggleSidebar}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
       <Box
         component="main"
         sx={{
-          ml: { xs: `${SIDEBAR_WIDTH.xs}px`, sm: `${SIDEBAR_WIDTH.sm}px` },
+          ml: isMobile ? 0 : sidebarExpanded ? `${SIDEBAR_WIDTH.expanded}px` : `${SIDEBAR_WIDTH.collapsed}px`,
           minHeight: '100vh',
           py: { xs: 3, md: 5 },
+          pt: { xs: 9, md: 5 },
         }}
       >
         <Container maxWidth="lg">
           <Stack spacing={1} sx={{ mb: 4 }}>
-            <Typography variant="overline" sx={{ color: '#26714f', fontWeight: 700, letterSpacing: '.12em' }}>
-              ÁREA ADMINISTRATIVA
-            </Typography>
-            <Typography variant="h4" component="h1" sx={{ color: '#173d30', fontWeight: 700 }}>
-              Minha conta
-            </Typography>
-            <Typography color="text.secondary">
-              Gerencie e consulte os dados do seu perfil administrativo.
-            </Typography>
+            <Stack
+              direction={isMobile ? 'column' : 'row'}
+              spacing={1}
+              sx={{ alignItems: 'flex-start' }}
+            >
+              <Box>
+                <Typography variant="overline" sx={{ color: '#26714f', fontWeight: 700, letterSpacing: '.12em' }}>
+                  ÁREA ADMINISTRATIVA
+                </Typography>
+                <Typography variant="h4" component="h1" sx={{ color: '#173d30', fontWeight: 700 }}>
+                  Minha conta
+                </Typography>
+                <Typography color="text.secondary">
+                  Gerencie e consulte os dados do seu perfil administrativo.
+                </Typography>
+              </Box>
+            </Stack>
           </Stack>
 
           <Box

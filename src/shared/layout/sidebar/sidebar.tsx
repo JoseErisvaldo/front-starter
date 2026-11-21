@@ -2,16 +2,51 @@ import {
   Box,
   Button,
   Drawer,
+  IconButton,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   SvgIcon,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
-export const SIDEBAR_WIDTH = { xs: 80, sm: 280 };
+export const SIDEBAR_WIDTH = { collapsed: 80, expanded: 280 };
+
+type MobileSidebarBarProps = {
+  onOpen: () => void;
+};
+
+export function MobileSidebarBar({ onOpen }: MobileSidebarBarProps) {
+  return (
+    <Box
+      component="header"
+      sx={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: (theme) => theme.zIndex.appBar,
+        height: 56,
+        display: "flex",
+        alignItems: "center",
+        px: 2,
+        bgcolor: "#fff",
+        borderBottom: "1px solid #e3e9e4",
+      }}
+    >
+      <IconButton aria-label="Abrir menu" onClick={onOpen}>
+        <SvgIcon>
+          <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
+        </SvgIcon>
+      </IconButton>
+    </Box>
+  );
+}
 
 export function BrandMark() {
   return (
@@ -64,41 +99,80 @@ export function BrandMark() {
 
 type Props = {
   onLogout: () => void;
+  expanded: boolean;
+  mobileOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
 };
 
-export function Sidebar({ onLogout }: Props) {
+export function Sidebar({ onLogout, expanded, mobileOpen, onToggle, onClose }: Props) {
   const { pathname } = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const showLabels = isMobile || expanded;
+
+  useEffect(() => {
+    if (isMobile && mobileOpen) onClose();
+  }, [pathname]);
 
   return (
     <Drawer
-      variant="permanent"
+      variant={isMobile ? "temporary" : "permanent"}
+      open={isMobile ? mobileOpen : true}
+      onClose={onClose}
       aria-label="Navegação administrativa"
       sx={{
-        width: SIDEBAR_WIDTH,
+        width: isMobile ? 0 : expanded ? SIDEBAR_WIDTH.expanded : SIDEBAR_WIDTH.collapsed,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: SIDEBAR_WIDTH,
+          width: isMobile || expanded ? SIDEBAR_WIDTH.expanded : SIDEBAR_WIDTH.collapsed,
           boxSizing: "border-box",
-          px: { xs: 1.5, sm: 2.5 },
+          px: showLabels ? 2.5 : 1.5,
           bgcolor: "#fff",
           borderRight: "1px solid #e3e9e4",
         },
       }}
     >
       <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, px: { xs: 0.5, sm: 0.75 }, py: 3 }}>
-          <BrandMark />
-          <Typography
-            variant="h6"
-            sx={{ display: { xs: "none", sm: "block" }, color: "#24362c", fontWeight: 750, letterSpacing: "-.03em" }}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: showLabels ? "row" : "column",
+            alignItems: "center",
+            justifyContent: showLabels ? "space-between" : "center",
+            gap: showLabels ? 1 : 1.5,
+            px: 0.25,
+            py: 3,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+            <BrandMark />
+            <Typography
+              variant="h6"
+              sx={{ display: showLabels ? "block" : "none", color: "#24362c", fontWeight: 750, letterSpacing: "-.03em" }}
+            >
+              Vitrite
+            </Typography>
+          </Box>
+          <IconButton
+            size="small"
+            aria-label={isMobile ? "Fechar menu" : expanded ? "Recolher menu" : "Expandir menu"}
+            onClick={isMobile ? onClose : onToggle}
+            sx={{ flexShrink: 0 }}
           >
-            Vitrite
-          </Typography>
+            <SvgIcon>
+              {isMobile || expanded ? (
+                <path d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4l5.6 5.6L5 17.6 6.4 19l5.6-5.6 5.6 5.6 1.4-1.4-5.6-5.6z" />
+              ) : (
+                <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
+              )}
+            </SvgIcon>
+          </IconButton>
         </Box>
 
         <Typography
           variant="overline"
-          sx={{ px: 1, mt: 2, mb: 1, color: "#89988d", fontSize: 10, fontWeight: 700, letterSpacing: ".12em", display: { xs: "none", sm: "block" } }}
+          sx={{ px: 1, mt: 2, mb: 1, color: "#89988d", fontSize: 10, fontWeight: 700, letterSpacing: ".12em", display: showLabels ? "block" : "none" }}
         >
           ESPAÇO DE TRABALHO
         </Typography>
@@ -111,21 +185,21 @@ export function Sidebar({ onLogout }: Props) {
             sx={{
               minHeight: 48,
               borderRadius: 2,
-              px: { xs: 1.5, sm: 2 },
+              px: showLabels ? 2 : 1.5,
               color: "#66766b",
               "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
               "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
               "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
             }}
           >
-            <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+            <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
               <SvgIcon>
                 <path d="M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h8v8H3v-8zm10-3h8v11h-8V10z" />
               </SvgIcon>
             </ListItemIcon>
             <ListItemText
               primary="Início"
-              sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+              sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
             />
           </ListItemButton>
         <ListItemButton
@@ -137,21 +211,21 @@ export function Sidebar({ onLogout }: Props) {
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: { xs: 1.5, sm: 2 },
+            px: showLabels ? 2 : 1.5,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
             "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
           }}
         >
-          <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+          <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
             <SvgIcon>
               <path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM9 4h6v2H9V4zm11 16H4V8h3v2h2V8h6v2h2V8h3v12z" />
             </SvgIcon>
           </ListItemIcon>
           <ListItemText
             primary="Produtos"
-            sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+            sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
         </ListItemButton>
         <ListItemButton
@@ -163,21 +237,21 @@ export function Sidebar({ onLogout }: Props) {
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: { xs: 1.5, sm: 2 },
+            px: showLabels ? 2 : 1.5,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
             "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
           }}
         >
-          <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+          <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
             <SvgIcon>
               <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14ZM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" />
             </SvgIcon>
           </ListItemIcon>
           <ListItemText
             primary="Pedidos"
-            sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+            sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
         </ListItemButton>
         <ListItemButton
@@ -189,21 +263,21 @@ export function Sidebar({ onLogout }: Props) {
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: { xs: 1.5, sm: 2 },
+            px: showLabels ? 2 : 1.5,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
             "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
           }}
         >
-          <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+          <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
             <SvgIcon>
               <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z" />
             </SvgIcon>
           </ListItemIcon>
           <ListItemText
             primary="Minha conta"
-            sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+            sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
         </ListItemButton>
         </List>
@@ -220,15 +294,15 @@ export function Sidebar({ onLogout }: Props) {
               </SvgIcon>
             }
             sx={{
-              justifyContent: { xs: "center", sm: "flex-start" },
+              justifyContent: showLabels ? "flex-start" : "center",
               minHeight: 46,
-              px: { xs: 1, sm: 2 },
+              px: showLabels ? 2 : 1,
               color: "#66766b",
               "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
-              "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1.5 } },
+              "& .MuiButton-startIcon": { mr: showLabels ? 1.5 : 0 },
             }}
           >
-            <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            <Box component="span" sx={{ display: showLabels ? "inline" : "none" }}>
               Sair da conta
             </Box>
           </Button>
