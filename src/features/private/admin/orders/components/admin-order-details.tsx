@@ -1,4 +1,4 @@
-import { Alert, Chip, CircularProgress, Divider, Stack, Typography } from '@mui/material'
+import { Alert, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
@@ -37,7 +37,32 @@ export function AdminOrderDetails({ paymentId }: Props) {
   const orderQuery = useAdminOrderDetailsQuery(paymentId)
   const order = orderQuery.data
 
-  if (orderQuery.isLoading) return <CircularProgress size={24} />
+  if (orderQuery.isLoading) {
+    return (
+      <Stack spacing={2.5} aria-label="Carregando detalhes do pedido">
+        <Skeleton variant="rounded" width={112} height={28} />
+        <Divider />
+        <Stack spacing={1}>
+          <Skeleton width={72} height={20} />
+          <Skeleton width="55%" height={24} />
+          <Skeleton width="75%" height={20} />
+        </Stack>
+        <Divider />
+        <Stack spacing={1}>
+          <Skeleton width={120} height={20} />
+          <Skeleton variant="rounded" height={56} />
+          <Skeleton variant="rounded" height={56} />
+          <Skeleton width="45%" height={24} sx={{ alignSelf: 'flex-end' }} />
+        </Stack>
+        <Divider />
+        <Stack spacing={1}>
+          <Skeleton width={104} height={20} />
+          <Skeleton width="80%" height={20} />
+          <Skeleton width="92%" height={20} />
+        </Stack>
+      </Stack>
+    )
+  }
   if (orderQuery.error) {
     return (
       <Alert severity="error">
