@@ -10,26 +10,37 @@ import {
 } from '@mui/material'
 import { SIDEBAR_WIDTH, Sidebar } from './sidebar/sidebar'
 
-type DrawerAction = {
+export type LayoutAdminAction = {
   id: string
-  label: string
+  label?: string
   title: string
   subtitle?: string
   content: ReactNode | ((controls: { close: () => void }) => ReactNode)
 }
 
+type LayoutAdminControls = {
+  openAction: (id: string) => void
+}
+
 type Props = {
   title: string
   subtitle: string
-  actions?: DrawerAction[]
+  actions?: LayoutAdminAction[]
   onLogout: () => void
-  children: ReactNode
+  children: ReactNode | ((controls: LayoutAdminControls) => ReactNode)
 }
 
 export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children }: Props) {
   const [activeActionId, setActiveActionId] = useState<string | null>(null)
   const activeAction = actions.find((action) => action.id === activeActionId)
   const closeDrawer = () => setActiveActionId(null)
+  const openAction = (id: string) => {
+    if (!actions.some((action) => action.id === id)) {
+      throw new Error(`Ação de layout não encontrada: ${id}`)
+    }
+    setActiveActionId(id)
+  }
+  const childrenContent = typeof children === 'function' ? children({ openAction }) : children
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f2f6f3' }}>
@@ -60,13 +71,13 @@ export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children 
                 {subtitle}
               </Typography>
             </Box>
-            {actions.length > 0 && (
+            {actions.some((action) => action.label) && (
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                {actions.map((action) => (
+                {actions.filter((action) => action.label).map((action) => (
                   <Button
                     key={action.id}
                     variant="contained"
-                    onClick={() => setActiveActionId(action.id)}
+                    onClick={() => openAction(action.id)}
                   >
                     {action.label}
                   </Button>
@@ -74,7 +85,7 @@ export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children 
               </Stack>
             )}
           </Box>
-          <Box>{children}</Box>
+          <Box>{childrenContent}</Box>
         </Stack>
       </Box>
 

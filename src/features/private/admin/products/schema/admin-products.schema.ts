@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { productSchema } from '../../../../public/products/schema/product.schema'
 
+export const adminProductSchema = productSchema.extend({
+  active: z.boolean(),
+})
+
 export const adminProductsQuerySchema = z.object({
   page: z.number().int().min(0),
   pageSize: z.number().int().min(1).max(100),
@@ -9,7 +13,7 @@ export const adminProductsQuerySchema = z.object({
 })
 
 export const adminProductsResponseSchema = z.object({
-  products: z.array(productSchema),
+  products: z.array(adminProductSchema),
   pagination: z.object({
     page: z.number().int(),
     pageSize: z.number().int(),
@@ -18,3 +22,4 @@ export const adminProductsResponseSchema = z.object({
 })
 
 export type AdminProductsQuery = z.infer<typeof adminProductsQuerySchema>
+export type AdminProduct = z.infer<typeof adminProductSchema>
