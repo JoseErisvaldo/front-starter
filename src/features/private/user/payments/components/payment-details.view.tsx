@@ -13,6 +13,11 @@ import {
 } from "@mui/material";
 import { getApiErrorMessage } from "../../../../../shared/lib/api-error";
 import { formatCurrency } from "../../../../../shared/lib/format-currency";
+import {
+  translatePaymentMethod,
+  translatePaymentStatus,
+  translatePaymentStatusDetail,
+} from "../../../../../shared/i18n/payment";
 import { usePaymentStatusQuery } from "../queries/use-payment-status-query";
 import { PaymentStatusFeedback } from "./payment-status-feedback.view";
 import { PixPaymentInstructions } from "./pix-payment-instructions.view";
@@ -22,38 +27,8 @@ type Props = {
   onClose: () => void;
 };
 
-const paymentMethodLabels: Record<string, string> = {
-  pix: "Pix",
-  card: "Cartão",
-  credit_card: "Cartão de crédito",
-  debit_card: "Cartão de débito",
-  prepaid_card: "Cartão pré-pago",
-};
-
 function getStatusLabel(status: string | null) {
-  switch (status?.toLowerCase()) {
-    case "action_required":
-      return "Aguardando pagamento";
-    case "processed":
-    case "approved":
-    case "accredited":
-      return "Pago";
-    case "cancelled":
-    case "canceled":
-      return "Cancelado";
-    case "expired":
-      return "Expirado";
-    case "failed":
-    case "rejected":
-    case "declined":
-    case "error":
-      return "Falhou";
-    case "pending":
-    case "processing":
-      return "Em processamento";
-    default:
-      return "Indisponível";
-  }
+  return translatePaymentStatus(status);
 }
 
 function getProcessingModeLabel(processingMode: string | null) {
@@ -62,16 +37,7 @@ function getProcessingModeLabel(processingMode: string | null) {
 }
 
 function getStatusDetailLabel(statusDetail: string | null) {
-  switch (statusDetail?.toLowerCase()) {
-    case "waiting_transfer":
-      return "Aguardando transferência";
-    case "accredited":
-      return "Pagamento aprovado";
-    case "processing_error":
-      return "Erro no processamento";
-    default:
-      return null;
-  }
+  return translatePaymentStatusDetail(statusDetail);
 }
 
 function getCaptureModeLabel(captureMode: string | null) {
@@ -172,7 +138,7 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
                       Forma de pagamento
                     </Typography>
                     <Typography sx={{ textAlign: "right" }}>
-                      {paymentMethodLabels[payment.paymentMethod] ?? "Outro"}
+                      {translatePaymentMethod(payment.paymentMethod)}
                     </Typography>
                   </Stack>
                   {payment.createdAt && (
@@ -397,9 +363,7 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
                               Método
                             </Typography>
                             <Typography>
-                              {paymentMethodLabels[
-                                providerOrder.payment.method
-                              ] ?? "Outro"}
+                              {translatePaymentMethod(providerOrder.payment.method)}
                             </Typography>
                           </Stack>
                         )}

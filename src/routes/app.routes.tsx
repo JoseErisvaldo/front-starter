@@ -14,6 +14,19 @@ const AdminProductsRoute = lazy(() =>
     default: module.AdminProductsRoute,
   })),
 )
+const AdminOrdersRoute = lazy(() =>
+  import('../features/private/admin/orders/routes/admin-orders.route').then((module) => ({
+    default: module.AdminOrdersRoute,
+  })),
+)
+
+function AdminRouteLoading() {
+  return (
+    <Box sx={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
+      <CircularProgress size={28} />
+    </Box>
+  )
+}
 
 const publicRoutes: RouteObject[] = [
   { path: '/', element: <Navigate to="/produtos" replace /> },
@@ -32,17 +45,11 @@ const adminRoutes: RouteObject[] = [
   { path: '/admin/conta', element: <AdminAccountRoute /> },
   {
     path: '/admin/produtos',
-    element: (
-      <Suspense
-        fallback={
-          <Box sx={{ minHeight: '50vh', display: 'grid', placeItems: 'center' }}>
-            <CircularProgress size={28} />
-          </Box>
-        }
-      >
-        <AdminProductsRoute />
-      </Suspense>
-    ),
+    element: <Suspense fallback={<AdminRouteLoading />}><AdminProductsRoute /></Suspense>,
+  },
+  {
+    path: '/admin/pedidos',
+    element: <Suspense fallback={<AdminRouteLoading />}><AdminOrdersRoute /></Suspense>,
   },
 ]
 

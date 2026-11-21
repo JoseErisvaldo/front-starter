@@ -121,7 +121,16 @@ export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children 
                 </SvgIcon>
               </IconButton>
             </Box>
-            <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                scrollbarGutter: 'stable',
+                pr: 1,
+              }}
+            >
               {typeof activeAction.content === 'function'
                 ? activeAction.content({ close: closeDrawer })
                 : activeAction.content}

@@ -156,6 +156,32 @@ export function Sidebar({ onLogout }: Props) {
         </ListItemButton>
         <ListItemButton
           component={RouterLink}
+          to="/admin/pedidos"
+          selected={pathname === "/admin/pedidos"}
+          aria-label="Pedidos"
+          sx={{
+            minHeight: 48,
+            mt: 0.5,
+            borderRadius: 2,
+            px: { xs: 1.5, sm: 2 },
+            color: "#66766b",
+            "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+            "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+            "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+            <SvgIcon>
+              <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14ZM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" />
+            </SvgIcon>
+          </ListItemIcon>
+          <ListItemText
+            primary="Pedidos"
+            sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+          />
+        </ListItemButton>
+        <ListItemButton
+          component={RouterLink}
           to="/admin/conta"
           selected={pathname === "/admin/conta"}
           aria-label="Minha conta"

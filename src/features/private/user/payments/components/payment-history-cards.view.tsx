@@ -16,6 +16,11 @@ import {
   Typography,
 } from "@mui/material";
 import { formatCurrency } from "../../../../../shared/lib/format-currency";
+import {
+  translatePaymentMethod,
+  translatePaymentStatus,
+  translatePaymentStatusDetail,
+} from "../../../../../shared/i18n/payment";
 import { getPaymentState, isPaymentExpired } from "../utils/payment-status";
 import type { PaymentListResponse } from "../types/payment.types";
 
@@ -32,25 +37,15 @@ type Props = {
   onPageChange: (event: unknown, page: number) => void;
 };
 
-const paymentMethodLabels: Record<string, string> = {
-  pix: "Pix",
-  card: "Cartão",
-  credit_card: "Cartão de crédito",
-  debit_card: "Cartão de débito",
-  prepaid_card: "Cartão pré-pago",
-};
-
 function getStatusLabel(
   status: string,
   statusDetail: string | null,
   expiresAt: string | null,
 ) {
   const state = getPaymentState(status, statusDetail, expiresAt);
-  if (state === "success") return "Pago";
   if (isPaymentExpired(expiresAt)) return "Pix expirado";
-  if (state === "error") return "Falhou";
-  if (status === "action_required") return "Aguardando pagamento";
-  return "Em processamento";
+  if (state === "success" || state === "error") return translatePaymentStatus(status);
+  return translatePaymentStatusDetail(statusDetail) ?? translatePaymentStatus(status);
 }
 
 function getStatusColor(
@@ -210,7 +205,7 @@ export function PaymentHistoryCardsView({
                   >
                     <Typography color="text.secondary">Pagamento</Typography>
                     <Typography sx={{ textAlign: "right" }}>
-                      {paymentMethodLabels[payment.paymentMethod] ?? "Outro"}
+                      {translatePaymentMethod(payment.paymentMethod)}
                     </Typography>
                   </Stack>
                   <Stack
