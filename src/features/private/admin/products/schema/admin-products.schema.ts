@@ -3,6 +3,7 @@ import { productSchema } from '../../../../public/products/schema/product.schema
 
 export const adminProductSchema = productSchema.extend({
   active: z.boolean(),
+  createdAt: z.string().datetime(),
 })
 
 export const adminProductsQuerySchema = z.object({

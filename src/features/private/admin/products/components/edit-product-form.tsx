@@ -13,16 +13,18 @@ type Props = {
 export function EditProductForm({ product, onUpdated }: Props) {
   const updateProduct = useUpdateProductMutation()
   const [formError, setFormError] = useState('')
+  const [name, setName] = useState(product.name)
+  const [description, setDescription] = useState(product.description)
+  const [price, setPrice] = useState(String(product.price))
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError('')
 
-    const formData = new FormData(event.currentTarget)
     const result = createProductInputSchema.safeParse({
-      name: formData.get('name'),
-      description: formData.get('description'),
-      price: formData.get('price'),
+      name,
+      description,
+      price,
     })
 
     if (!result.success) {
@@ -44,7 +46,8 @@ export function EditProductForm({ product, onUpdated }: Props) {
       <TextField
         name="name"
         label="Nome do produto"
-        defaultValue={product.name}
+        value={name}
+        onChange={(event) => setName(event.target.value)}
         autoComplete="off"
         required
         fullWidth
@@ -53,7 +56,8 @@ export function EditProductForm({ product, onUpdated }: Props) {
       <TextField
         name="description"
         label="Descrição"
-        defaultValue={product.description}
+        value={description}
+        onChange={(event) => setDescription(event.target.value)}
         multiline
         minRows={4}
         required
@@ -64,7 +68,8 @@ export function EditProductForm({ product, onUpdated }: Props) {
         name="price"
         label="Preço (R$)"
         type="number"
-        defaultValue={product.price}
+        value={price}
+        onChange={(event) => setPrice(event.target.value)}
         required
         fullWidth
         slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}

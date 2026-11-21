@@ -9,7 +9,8 @@ import {
 import { ptBR } from '@mui/x-data-grid/locales'
 import { useMemo } from 'react'
 import type { AdminProduct } from '../schema/admin-products.schema'
-import { formatCurrency } from '../../../../../shared/lib/format-currency'
+import { formatBrazilianCurrency } from '../../../../../shared/utils/format-brazilian-currency'
+import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
 
 type Props = {
   products: AdminProduct[]
@@ -51,7 +52,14 @@ export function AdminProductsView({
       minWidth: 150,
       align: 'right',
       headerAlign: 'right',
-      renderCell: ({ row }) => formatCurrency(row.price, row.currency),
+      renderCell: ({ row }) => formatBrazilianCurrency(row.price),
+    },
+    {
+      field: 'createdAt',
+      headerName: 'Criado em',
+      width: 190,
+      sortable: false,
+      renderCell: ({ row }) => formatBrazilianDate(row.createdAt),
     },
     {
       field: 'active',
