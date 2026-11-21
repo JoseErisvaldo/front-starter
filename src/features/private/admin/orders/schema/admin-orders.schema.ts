@@ -1,5 +1,18 @@
 import { z } from 'zod'
 
+export const adminOrdersQuerySchema = z.object({
+  page: z.number().int().min(1),
+  pageSize: z.number().int().min(1).max(100),
+  search: z.string().optional(),
+  customerName: z.string().optional(),
+  paymentMethod: z.enum(['pix', 'card']).optional(),
+  status: z.enum(['paid', 'pending', 'failed', 'cancelled', 'expired']).optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+  sortBy: z.enum(['createdAt', 'amount', 'status']),
+  sortOrder: z.enum(['asc', 'desc']),
+})
+
 const customerSchema = z.object({
   name: z.string(),
   email: z.string().email(),
@@ -51,3 +64,4 @@ export const adminOrderDetailsResponseSchema = z.object({
 
 export type AdminOrder = z.infer<typeof adminOrdersResponseSchema>['payments'][number]
 export type AdminOrderDetails = z.infer<typeof adminOrderDetailsResponseSchema>['payment']
+export type AdminOrdersQuery = z.infer<typeof adminOrdersQuerySchema>

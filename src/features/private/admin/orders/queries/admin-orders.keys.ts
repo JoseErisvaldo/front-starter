@@ -1,7 +1,9 @@
+import type { AdminOrdersQuery } from '../schema/admin-orders.schema'
+
 export const adminOrdersQueryKeys = {
   all: ['admin-orders'] as const,
-  list: (page: number, pageSize: number) =>
-    [...adminOrdersQueryKeys.all, 'list', page, pageSize] as const,
+  list: (query: AdminOrdersQuery) =>
+    [...adminOrdersQueryKeys.all, 'list', query] as const,
   detail: (paymentId: string) =>
     [...adminOrdersQueryKeys.all, 'detail', paymentId] as const,
 }

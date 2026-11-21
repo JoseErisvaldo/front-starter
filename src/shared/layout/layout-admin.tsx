@@ -13,6 +13,8 @@ import { SIDEBAR_WIDTH, Sidebar } from './sidebar/sidebar'
 export type LayoutAdminAction = {
   id: string
   label?: string
+  icon?: ReactNode
+  ariaLabel?: string
   title: string
   subtitle?: string
   content: ReactNode | ((controls: { close: () => void }) => ReactNode)
@@ -71,15 +73,17 @@ export function LayoutAdmin({ title, subtitle, actions = [], onLogout, children 
                 {subtitle}
               </Typography>
             </Box>
-            {actions.some((action) => action.label) && (
+            {actions.some((action) => action.label || action.icon) && (
               <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                {actions.filter((action) => action.label).map((action) => (
+                {actions.filter((action) => action.label || action.icon).map((action) => (
                   <Button
                     key={action.id}
-                    variant="contained"
+                    variant={action.label ? 'contained' : 'outlined'}
                     onClick={() => openAction(action.id)}
+                    aria-label={action.ariaLabel}
+                    sx={action.icon && !action.label ? { minWidth: 44, width: 44, px: 0 } : undefined}
                   >
-                    {action.label}
+                    {action.icon ?? action.label}
                   </Button>
                 ))}
               </Stack>
