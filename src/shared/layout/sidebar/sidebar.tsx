@@ -130,6 +130,32 @@ export function Sidebar({ onLogout }: Props) {
           </ListItemButton>
         <ListItemButton
           component={RouterLink}
+          to="/admin/produtos"
+          selected={pathname === "/admin/produtos"}
+          aria-label="Produtos"
+          sx={{
+            minHeight: 48,
+            mt: 0.5,
+            borderRadius: 2,
+            px: { xs: 1.5, sm: 2 },
+            color: "#66766b",
+            "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+            "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+            "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: { xs: 0, sm: 36 }, color: "inherit" }}>
+            <SvgIcon>
+              <path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM9 4h6v2H9V4zm11 16H4V8h3v2h2V8h6v2h2V8h3v12z" />
+            </SvgIcon>
+          </ListItemIcon>
+          <ListItemText
+            primary="Produtos"
+            sx={{ display: { xs: "none", sm: "block" }, "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+          />
+        </ListItemButton>
+        <ListItemButton
+          component={RouterLink}
           to="/admin/conta"
           selected={pathname === "/admin/conta"}
           aria-label="Minha conta"
