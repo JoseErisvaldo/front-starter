@@ -4,14 +4,12 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import type { User } from "../../../../public/auth/types/auth.types";
 import type { PaymentListResponse } from "../../payments/types/payment.types";
 import { PaymentHistoryCardsView } from "../../payments/components/payment-history-cards.view";
 import { PaymentDetailsView } from "../../payments/components/payment-details.view";
-import { StoreHeader } from "../../../../../shared/components/store-header";
+import { LayoutUser } from "../../../../../shared/layout/layout-user";
 
 type Props = {
-  user: User;
   payments: PaymentListResponse["payments"];
   paymentsPage: number;
   paymentsPageSize: number;
@@ -28,7 +26,6 @@ type Props = {
 };
 
 export function OrdersView({
-  user,
   payments,
   paymentsPage,
   paymentsPageSize,
@@ -44,8 +41,8 @@ export function OrdersView({
   onClosePaymentDetails,
 }: Props) {
   return (
-    <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <StoreHeader user={user} activePage="orders" onLogout={onLogout} />
+    <LayoutUser onLogout={onLogout}>
+      <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
         <Stack spacing={3}>
           <Box>
@@ -68,12 +65,13 @@ export function OrdersView({
             onViewPayment={onViewPaymentDetails}
             onPageChange={onPaymentsPageChange}
           />
+          <PaymentDetailsView
+            paymentId={selectedPaymentId}
+            onClose={onClosePaymentDetails}
+          />
         </Stack>
       </Container>
-      <PaymentDetailsView
-        paymentId={selectedPaymentId}
-        onClose={onClosePaymentDetails}
-      />
-    </Box>
+      </Box>
+    </LayoutUser>
   );
 }

@@ -16,6 +16,7 @@ import type { User } from "../../auth/types/auth.types";
 import type { Product } from "../types/product.types";
 import { formatCurrency } from "../../../../shared/lib/format-currency";
 import { StoreHeader } from "../../../../shared/components/store-header";
+import { LayoutUser } from "../../../../shared/layout/layout-user";
 
 type Props = {
   user: User | null;
@@ -51,24 +52,36 @@ export function CatalogView({
     );
   }, [products, search]);
 
-  return (
+  const cartButton = (
+    <Button variant="outlined" size="small" onClick={onOpenCart}>
+      Carrinho{cartCount > 0 ? ` (${cartCount})` : ""}
+    </Button>
+  );
+  const content = (
     <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      <StoreHeader
-        user={user}
-        activePage="products"
-        onLogout={onLogout}
-        cartCount={cartCount}
-        onOpenCart={onOpenCart}
-      />
+      {!isAuthLoading && user?.role !== "USER" && (
+        <StoreHeader
+          user={user}
+          activePage="products"
+          onLogout={onLogout}
+          cartCount={cartCount}
+          onOpenCart={onOpenCart}
+        />
+      )}
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
         <Stack spacing={3}>
-          <Box>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
+            <Box>
             <Typography variant="h4" component="h1">
               Produtos
             </Typography>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
               Confira os produtos disponíveis.
             </Typography>
+            </Box>
+            {user?.role === "USER" && (
+              <Box sx={{ display: { xs: "none", sm: "block" } }}>{cartButton}</Box>
+            )}
           </Box>
           <TextField
             value={search}
@@ -166,4 +179,7 @@ export function CatalogView({
       </Container>
     </Box>
   );
+  return user?.role === "USER"
+    ? <LayoutUser onLogout={onLogout} mobileAction={cartButton}>{content}</LayoutUser>
+    : content;
 }
