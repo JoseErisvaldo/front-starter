@@ -63,7 +63,6 @@ export function CreateProductForm({ onCreated }: Props) {
         required
         fullWidth
       />
-      <Alert severity="info">O produto será cadastrado como ativo e disponível para venda.</Alert>
       {formError && <Alert severity="error" role="alert">{formError}</Alert>}
       <Button type="submit" variant="contained" disabled={createProduct.isPending}>
         {createProduct.isPending ? 'Cadastrando...' : 'Cadastrar produto'}
