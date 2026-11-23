@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Button, Stack, TextField } from '@mui/material'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
+import { CurrencyInput, formatCurrencyInput, parseCurrencyInput } from '../../../../../shared/components/currency-input'
 import type { AdminProduct } from '../schema/admin-products.schema'
 import { createProductInputSchema } from '../schema/create-product.schema'
 import { useUpdateProductMutation } from '../mutations/use-update-product-mutation'
@@ -15,7 +16,7 @@ export function EditProductForm({ product, onUpdated }: Props) {
   const [formError, setFormError] = useState('')
   const [name, setName] = useState(product.name)
   const [description, setDescription] = useState(product.description)
-  const [price, setPrice] = useState(String(product.price))
+  const [price, setPrice] = useState(formatCurrencyInput(product.price.toFixed(2)))
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -24,7 +25,7 @@ export function EditProductForm({ product, onUpdated }: Props) {
     const result = createProductInputSchema.safeParse({
       name,
       description,
-      price,
+      price: parseCurrencyInput(price),
     })
 
     if (!result.success) {
@@ -64,15 +65,13 @@ export function EditProductForm({ product, onUpdated }: Props) {
         fullWidth
         slotProps={{ htmlInput: { maxLength: 2000 } }}
       />
-      <TextField
+      <CurrencyInput
         name="price"
         label="Preço (R$)"
-        type="number"
         value={price}
-        onChange={(event) => setPrice(event.target.value)}
+        onValueChange={setPrice}
         required
         fullWidth
-        slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
       />
       {formError && <Alert severity="error" role="alert">{formError}</Alert>}
       <Button type="submit" variant="contained" disabled={updateProduct.isPending}>

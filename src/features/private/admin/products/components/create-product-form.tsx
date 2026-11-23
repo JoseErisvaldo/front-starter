@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Button, Stack, TextField } from '@mui/material'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
+import { CurrencyInput, parseCurrencyInput } from '../../../../../shared/components/currency-input'
 import { useCreateProductMutation } from '../mutations/use-create-product-mutation'
 import { createProductInputSchema } from '../schema/create-product.schema'
 
@@ -11,6 +12,7 @@ type Props = {
 export function CreateProductForm({ onCreated }: Props) {
   const createProduct = useCreateProductMutation()
   const [formError, setFormError] = useState('')
+  const [price, setPrice] = useState('')
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -20,7 +22,7 @@ export function CreateProductForm({ onCreated }: Props) {
     const result = createProductInputSchema.safeParse({
       name: formData.get('name'),
       description: formData.get('description'),
-      price: formData.get('price'),
+      price: parseCurrencyInput(price),
     })
 
     if (!result.success) {
@@ -53,13 +55,13 @@ export function CreateProductForm({ onCreated }: Props) {
         fullWidth
         slotProps={{ htmlInput: { maxLength: 2000 } }}
       />
-      <TextField
+      <CurrencyInput
         name="price"
         label="Preço (R$)"
-        type="number"
+        value={price}
+        onValueChange={setPrice}
         required
         fullWidth
-        slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
       />
       <Alert severity="info">O produto será cadastrado como ativo e disponível para venda.</Alert>
       {formError && <Alert severity="error" role="alert">{formError}</Alert>}
