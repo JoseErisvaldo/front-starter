@@ -8,6 +8,17 @@ type IdempotencyRecord = {
   key: string
 }
 
+function isIdempotencyRecord(value: unknown): value is IdempotencyRecord {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'fingerprint' in value &&
+    typeof value.fingerprint === 'string' &&
+    'key' in value &&
+    typeof value.key === 'string'
+  )
+}
+
 function createFingerprint(userId: string, input: CreatePaymentInput) {
   const items = input.items
     .map(({ productId, quantity }) => ({ productId, quantity }))
@@ -27,42 +38,41 @@ function createFingerprint(userId: string, input: CreatePaymentInput) {
   })
 }
 
-function readRecord(): IdempotencyRecord | null {
+function readRecords(): IdempotencyRecord[] {
   const stored = sessionStorage.getItem(STORAGE_KEY)
-  if (!stored) return null
+  if (!stored) return []
 
   const parsed: unknown = JSON.parse(stored)
-  if (
-    typeof parsed !== 'object' ||
-    parsed === null ||
-    !('fingerprint' in parsed) ||
-    typeof parsed.fingerprint !== 'string' ||
-    !('key' in parsed) ||
-    typeof parsed.key !== 'string'
-  ) {
-    throw new TypeError('Chave de idempotência de pagamento inválida.')
+  if (isIdempotencyRecord(parsed)) {
+    return [parsed]
   }
-  return { fingerprint: parsed.fingerprint, key: parsed.key }
+  if (Array.isArray(parsed) && parsed.every(isIdempotencyRecord)) {
+    return parsed
+  }
+  throw new TypeError('Chave de idempotência de pagamento inválida.')
 }
 
 function getOrCreateKey(fingerprint: string) {
-  const current = readRecord()
-  if (current?.fingerprint === fingerprint) return current.key
-  if (current) {
-    throw new Error(
-      'Há uma tentativa de pagamento anterior aguardando confirmação. Aguarde antes de iniciar outra.',
-    )
-  }
+  const records = readRecords()
+  const current = records.find((record) => record.fingerprint === fingerprint)
+  if (current) return current.key
 
   const key = crypto.randomUUID()
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ fingerprint, key }))
+  sessionStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify([...records, { fingerprint, key }]),
+  )
   return key
 }
 
 function clearKey(fingerprint: string, key: string) {
-  const current = readRecord()
-  if (current?.fingerprint === fingerprint && current.key === key) {
+  const remaining = readRecords().filter(
+    (record) => record.fingerprint !== fingerprint || record.key !== key,
+  )
+  if (remaining.length === 0) {
     sessionStorage.removeItem(STORAGE_KEY)
+  } else {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(remaining))
   }
 }
 
@@ -79,7 +89,10 @@ export async function submitIdempotentPayment<T>(
     clearKey(fingerprint, key)
     return result
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 409) {
+    if (
+      isAxiosError(error) &&
+      [409, 422].includes(error.response?.status ?? 0)
+    ) {
       clearKey(fingerprint, key)
     }
     throw error
