@@ -40,6 +40,7 @@ import { formatCurrency } from "../../../../../shared/lib/format-currency";
 import { getApiErrorMessage } from "../../../../../shared/lib/api-error";
 import { logError } from "../../../../../shared/lib/log-error";
 import { getPaymentState } from "../utils/payment-status";
+import { submitIdempotentPayment } from "../utils/payment-idempotency";
 
 type Props = {
   items: CartItem[];
@@ -125,7 +126,11 @@ export function PaymentCheckoutView({
     });
 
     try {
-      const response = await paymentMutation.mutateAsync(input);
+      const response = await submitIdempotentPayment(
+        user.id,
+        input,
+        (idempotencyKey) => paymentMutation.mutateAsync({ input, idempotencyKey }),
+      );
       onResult(response.payment);
     } catch (error) {
       setBrickError(getApiErrorMessage(error));
@@ -157,7 +162,14 @@ export function PaymentCheckoutView({
     }
 
     try {
-      const response = await paymentMutation.mutateAsync(input.data);
+      const response = await submitIdempotentPayment(
+        user.id,
+        input.data,
+        (idempotencyKey) => paymentMutation.mutateAsync({
+          input: input.data,
+          idempotencyKey,
+        }),
+      );
       onResult(response.payment);
     } catch (error) {
       setPixError(getApiErrorMessage(error));
