@@ -76,6 +76,34 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
     return amount == null ? "Não informado" : formatCurrency(amount, currency);
   }
 
+  const productsSubtotal =
+    payment?.items.reduce((total, item) => total + item.lineTotal, 0) ?? 0;
+  const providerPayment = providerOrder?.payment;
+  const installments = providerPayment?.installments ?? null;
+  const installmentAmount = providerPayment?.installmentAmount ?? null;
+  const installmentPlanTotal =
+    installments != null && installmentAmount != null
+      ? Math.round(installments * installmentAmount * 100) / 100
+      : null;
+  const providerPaidTotal =
+    providerOrder?.totalPaidAmount != null &&
+    providerOrder.totalPaidAmount > 0
+      ? providerOrder.totalPaidAmount
+      : null;
+  const isPaymentPaid = ["processed", "approved", "accredited"].includes(
+    payment?.status.toLowerCase() ?? "",
+  );
+  const finalPaymentTotal = isPaymentPaid
+    ? providerPaidTotal ?? installmentPlanTotal ?? providerOrder?.totalAmount ?? payment?.amount
+    : installmentPlanTotal ??
+      providerPaidTotal ??
+      providerOrder?.totalAmount ??
+      payment?.amount;
+  const installmentCharges =
+    finalPaymentTotal != null
+      ? Math.max(0, Math.round((finalPaymentTotal - productsSubtotal) * 100) / 100)
+      : 0;
+
   return (
     <Dialog
       open={Boolean(paymentId)}
@@ -125,9 +153,54 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
                     direction="row"
                     sx={{ justifyContent: "space-between", gap: 2 }}
                   >
-                    <Typography color="text.secondary">Valor</Typography>
+                    <Typography color="text.secondary">
+                      Subtotal dos produtos
+                    </Typography>
+                    <Typography>
+                      {formatCurrency(productsSubtotal, payment.currency ?? "BRL")}
+                    </Typography>
+                  </Stack>
+                  {payment.paymentMethod === "credit_card" && (
+                    <Stack
+                      direction="row"
+                      sx={{ justifyContent: "space-between", gap: 2 }}
+                    >
+                      <Typography color="text.secondary">Parcelamento</Typography>
+                      <Typography sx={{ textAlign: "right" }}>
+                        {installments == null
+                          ? "Não informado"
+                          : installments === 1
+                            ? `1 parcela de ${formatAmount(installmentAmount ?? finalPaymentTotal)}`
+                            : `${installments} parcelas${
+                                installmentAmount == null
+                                  ? ""
+                                  : ` de ${formatAmount(installmentAmount)}`
+                              }`}
+                      </Typography>
+                    </Stack>
+                  )}
+                  {payment.paymentMethod === "credit_card" &&
+                    (installments ?? 1) > 1 &&
+                    installmentCharges > 0 && (
+                    <Stack
+                      direction="row"
+                      sx={{ justifyContent: "space-between", gap: 2 }}
+                    >
+                      <Typography color="text.secondary">
+                        Juros do parcelamento
+                      </Typography>
+                      <Typography>{formatAmount(installmentCharges)}</Typography>
+                    </Stack>
+                  )}
+                  <Stack
+                    direction="row"
+                    sx={{ justifyContent: "space-between", gap: 2 }}
+                  >
                     <Typography sx={{ fontWeight: 700 }}>
-                      {formatCurrency(payment.amount, payment.currency ?? "BRL")}
+                      {isPaymentPaid ? "Total pago" : "Total final previsto"}
+                    </Typography>
+                    <Typography sx={{ fontWeight: 700 }}>
+                      {formatAmount(finalPaymentTotal)}
                     </Typography>
                   </Stack>
                   <Stack
@@ -211,24 +284,6 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
                         </Typography>
                       </Stack>
                     )}
-                    <Stack
-                      direction="row"
-                      sx={{ justifyContent: "space-between", gap: 2 }}
-                    >
-                      <Typography color="text.secondary">Valor total</Typography>
-                      <Typography sx={{ fontWeight: 700 }}>
-                        {formatAmount(providerOrder.totalAmount)}
-                      </Typography>
-                    </Stack>
-                    <Stack
-                      direction="row"
-                      sx={{ justifyContent: "space-between", gap: 2 }}
-                    >
-                      <Typography color="text.secondary">Total pago</Typography>
-                      <Typography>
-                        {formatAmount(providerOrder.totalPaidAmount)}
-                      </Typography>
-                    </Stack>
                     {providerOrder.captureMode && (
                       <Stack
                         direction="row"
@@ -321,15 +376,6 @@ export function PaymentDetailsView({ paymentId, onClose }: Props) {
                             </Typography>
                           </Stack>
                         )}
-                        <Stack
-                          direction="row"
-                          sx={{ justifyContent: "space-between", gap: 2 }}
-                        >
-                          <Typography color="text.secondary">Valor</Typography>
-                          <Typography>
-                            {formatAmount(providerOrder.payment.amount)}
-                          </Typography>
-                        </Stack>
                         <Stack
                           direction="row"
                           sx={{ justifyContent: "space-between", gap: 2 }}

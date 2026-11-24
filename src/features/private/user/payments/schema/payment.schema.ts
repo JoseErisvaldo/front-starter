@@ -74,6 +74,8 @@ export const paymentResponseSchema = z.object({
         expirationTime: z.string().nullable(),
         method: z.string().nullable(),
         methodType: z.string().nullable(),
+        installments: z.number().int().positive().nullable(),
+        installmentAmount: z.number().nullable(),
         expiresAt: z.string().nullable(),
       }).nullable(),
     }).nullable().optional(),
