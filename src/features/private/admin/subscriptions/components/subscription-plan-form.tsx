@@ -23,6 +23,7 @@ type Props = {
 }
 
 export function SubscriptionPlanForm({ plan, onSaved }: Props) {
+  const [name, setName] = useState(plan?.name ?? '')
   const [tier, setTier] = useState<PlanInput['tier']>(plan?.tier ?? 'BASIC')
   const [recurrence, setRecurrence] = useState<PlanInput['recurrence']>(plan?.recurrence ?? 'MONTHLY')
   const [amount, setAmount] = useState(plan?.amount ? formatCurrencyInput(String(Math.round(plan.amount * 100))) : '')
@@ -38,7 +39,12 @@ export function SubscriptionPlanForm({ plan, onSaved }: Props) {
       setError('Informe um valor válido.')
       return
     }
-    const payload = { tier, recurrence, amount: parsedAmount, active }
+    const trimmedName = name.trim()
+    if (!trimmedName) {
+      setError('Informe o nome do plano.')
+      return
+    }
+    const payload = { name: trimmedName, tier, recurrence, amount: parsedAmount, active }
     setPending(true)
     try {
       await saveSubscriptionPlanService({ ...(plan ? { id: plan.id } : {}), plan: payload })
@@ -52,6 +58,14 @@ export function SubscriptionPlanForm({ plan, onSaved }: Props) {
 
   return (
     <Stack component="form" spacing={2.5} onSubmit={(event) => void submit(event)}>
+      <TextField
+        label="Nome do plano"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+        slotProps={{ htmlInput: { maxLength: 100 } }}
+        required
+        fullWidth
+      />
       <TextField select label="Plano" value={tier} onChange={(event) => setTier(event.target.value as PlanInput['tier'])} fullWidth>
         {tiers.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
       </TextField>

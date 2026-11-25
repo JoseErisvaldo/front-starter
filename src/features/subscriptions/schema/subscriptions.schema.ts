@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 export const subscriptionPlanSchema = z.object({
   id: z.string().uuid(),
+  name: z.string(),
   tier: z.enum(['BASIC', 'SIMPLE', 'PRO']),
   recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']),
   amount: z.number().nonnegative(),
@@ -41,6 +42,7 @@ export const subscriptionRecordSchema = z.object({
 })
 
 export const planInputSchema = z.object({
+  name: z.string().trim().min(1).max(100),
   tier: z.enum(['BASIC', 'SIMPLE', 'PRO']),
   recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']),
   amount: z.number().positive().max(999999.99),

@@ -38,13 +38,14 @@ export function AdminSubscriptionsRoute() {
   const activatePlan = useMutation({
     mutationFn: (plan: SubscriptionPlan) => updateSubscriptionPlanService({
       id: plan.id,
-      plan: { tier: plan.tier, recurrence: plan.recurrence, amount: plan.amount, active: true },
+      plan: { name: plan.name, tier: plan.tier, recurrence: plan.recurrence, amount: plan.amount, active: true },
     }),
     onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.plans }),
   })
 
   const planColumns = useMemo<GridColDef<SubscriptionPlan>[]>(() => [
-    { field: 'tier', headerName: 'Plano', width: 140, valueFormatter: (value) => tierNames[value as SubscriptionPlan['tier']] },
+    { field: 'name', headerName: 'Nome', minWidth: 180, flex: 1 },
+    { field: 'tier', headerName: 'Nível', width: 140, valueFormatter: (value) => tierNames[value as SubscriptionPlan['tier']] },
     { field: 'recurrence', headerName: 'Recorrência', width: 150, valueFormatter: (value) => recurrenceNames[value as SubscriptionPlan['recurrence']] },
     { field: 'amount', headerName: 'Valor', width: 140, valueFormatter: (value) => formatCurrency(Number(value), 'BRL') },
     { field: 'active', headerName: 'Status', width: 130, renderCell: ({ row }) => <Chip label={row.active ? 'Ativo' : 'Inativo'} color={row.active ? 'success' : 'default'} size="small" /> },
@@ -81,7 +82,7 @@ export function AdminSubscriptionsRoute() {
   const subscriptionColumns = useMemo<GridColDef<SubscriptionRecord>[]>(() => [
     { field: 'customer', headerName: 'Cliente', flex: 1, minWidth: 200, valueGetter: (_value, row) => row.user?.name ?? '—' },
     { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220, valueGetter: (_value, row) => row.user?.email ?? '—' },
-    { field: 'plan', headerName: 'Plano', width: 180, valueGetter: (_value, row) => `${tierNames[row.plan.tier]} · ${recurrenceNames[row.plan.recurrence]}` },
+    { field: 'plan', headerName: 'Plano', width: 220, valueGetter: (_value, row) => `${row.plan.name} · ${recurrenceNames[row.plan.recurrence]}` },
     { field: 'status', headerName: 'Status', width: 140, renderCell: ({ row }) => <Chip label={row.status} size="small" variant="outlined" /> },
     { field: 'nextPaymentDate', headerName: 'Próxima cobrança', width: 180, valueFormatter: (value) => value ? formatBrazilianDate(String(value)) : '—' },
   ], [])
@@ -109,7 +110,7 @@ export function AdminSubscriptionsRoute() {
         {
           id: 'edit-subscription-plan',
           title: 'Editar opção de plano',
-          subtitle: editingPlan ? `${tierNames[editingPlan.tier]} · ${recurrenceNames[editingPlan.recurrence]}` : undefined,
+          subtitle: editingPlan ? `${editingPlan.name} · ${recurrenceNames[editingPlan.recurrence]}` : undefined,
           content: ({ close }) => editingPlan ? (
             <SubscriptionPlanForm
               key={editingPlan.id}

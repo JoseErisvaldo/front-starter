@@ -22,7 +22,6 @@ const publicKey =
   import.meta.env.VITE_MP_SUBSCRIPTIONS_PUBLIC_KEY ?? import.meta.env.VITE_MP_PUBLIC_KEY
 if (publicKey) initMercadoPago(publicKey, { locale: 'pt-BR' })
 
-const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
 const subscriptionStatusNames: Record<string, string> = {
   authorized: 'Ativa',
@@ -103,7 +102,7 @@ export function SubscriptionsRoute() {
                 <Card variant="outlined" sx={{ height: '100%', borderColor: selectedPlan?.id === plan.id ? 'primary.main' : 'divider' }}>
                   <CardContent>
                     <Stack spacing={1.5}>
-                      <Chip label={`${tierNames[plan.tier]} · ${recurrenceNames[plan.recurrence]}`} sx={{ alignSelf: 'flex-start' }} />
+                      <Chip label={`${plan.name} · ${recurrenceNames[plan.recurrence]}`} sx={{ alignSelf: 'flex-start' }} />
                       <Typography variant="h4" sx={{ fontWeight: 700 }}>{formatCurrency(plan.amount, plan.currency)}</Typography>
                       <Typography color="text.secondary">por cobrança {recurrenceNames[plan.recurrence].toLowerCase()}</Typography>
                       <Button variant={selectedPlan?.id === plan.id ? 'contained' : 'outlined'} disabled={!publicKey} onClick={() => {
@@ -126,7 +125,7 @@ export function SubscriptionsRoute() {
               <Stack spacing={2}>
                 <Typography variant="h6">Autorizar cobrança recorrente</Typography>
                 <Typography color="text.secondary">
-                  {tierNames[selectedPlan.tier]} · {recurrenceNames[selectedPlan.recurrence]} · {formatCurrency(selectedPlan.amount, selectedPlan.currency)} por cobrança
+                  {selectedPlan.name} · {recurrenceNames[selectedPlan.recurrence]} · {formatCurrency(selectedPlan.amount, selectedPlan.currency)} por cobrança
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   O Mercado Pago validará o cartão. Não armazenamos os dados do cartão.
@@ -156,7 +155,7 @@ export function SubscriptionsRoute() {
                 <Paper key={subscription.id} variant="outlined" sx={{ p: 2.5 }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
                     <Box>
-                      <Typography variant="h6">{tierNames[subscription.plan.tier]} · {recurrenceNames[subscription.plan.recurrence]}</Typography>
+                      <Typography variant="h6">{subscription.plan.name} · {recurrenceNames[subscription.plan.recurrence]}</Typography>
                       <Typography color="text.secondary">
                         {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança · Status: {subscriptionStatusNames[subscription.status.toLowerCase()] ?? subscription.status}
                       </Typography>
