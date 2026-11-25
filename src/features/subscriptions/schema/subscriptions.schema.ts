@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const subscriptionPlanSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
-  tier: z.enum(['BASIC', 'SIMPLE', 'PRO']),
+  tier: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED']),
   recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']),
   amount: z.number().nonnegative(),
   currency: z.string().length(3),
@@ -46,7 +46,7 @@ export const subscriptionRecordSchema = z.object({
 
 export const planInputSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  tier: z.enum(['BASIC', 'SIMPLE', 'PRO']),
+  tier: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED']),
   recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']),
   amount: z.number().positive().max(999999.99),
   active: z.boolean(),
@@ -58,7 +58,7 @@ export const adminPlanListQuerySchema = z.object({
   sortBy: z.enum(['name', 'tier', 'recurrence', 'amount', 'active', 'createdAt']),
   sortOrder: z.enum(['asc', 'desc']),
   search: z.string().optional(),
-  tier: z.enum(['BASIC', 'SIMPLE', 'PRO']).optional(),
+  tier: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED']).optional(),
   recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']).optional(),
   active: z.enum(['true', 'false']).optional(),
 })
@@ -70,7 +70,7 @@ export const adminSubscriptionsQuerySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']),
   search: z.string().optional(),
   status: z.string().optional(),
-  tier: z.enum(['BASIC', 'SIMPLE', 'PRO']).optional(),
+  tier: z.enum(['BASIC', 'INTERMEDIATE', 'ADVANCED']).optional(),
   recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']).optional(),
   createdAtFrom: z.string().optional(),
   createdAtTo: z.string().optional(),

@@ -25,7 +25,7 @@ const publicKey =
 if (publicKey) initMercadoPago(publicKey, { locale: 'pt-BR' })
 
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
-const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
+const tierNames = { BASIC: 'Básico', INTERMEDIATE: 'Intermediário', ADVANCED: 'Avançado' } as const
 const queryKeys = {
   plans: ['subscription-plans'] as const,
   mine: ['my-subscriptions'] as const,
@@ -293,17 +293,21 @@ export function SubscriptionsRoute() {
                     height: '100%',
                     borderColor: selectedPlan?.id === plan.id ? 'primary.main' : 'divider',
                     borderRadius: 2,
-                    transition: 'border-color .2s, transform .2s',
-                    '&:hover': { borderColor: 'primary.main', transform: 'translateY(-3px)' },
+                    '&:hover': { borderColor: 'primary.main' },
                   }}
                 >
                   <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
                     <Stack spacing={2} sx={{ height: '100%' }}>
-                      <Stack spacing={0.75}>
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>{plan.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Plano {tierNames[plan.tier].toLowerCase()} com cobrança {recurrenceNames[plan.recurrence].toLowerCase()}.
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+                        <Typography variant="h6" sx={{ minWidth: 0, fontWeight: 700, overflowWrap: 'anywhere' }}>
+                          {plan.name}
                         </Typography>
+                        <Chip
+                          label={tierNames[plan.tier]}
+                          color="primary"
+                          size="small"
+                          sx={{ flexShrink: 0, fontWeight: 700 }}
+                        />
                       </Stack>
                       <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, mt: 'auto !important' }}>
                         <Typography variant="h3" sx={{ fontWeight: 750, letterSpacing: '-.04em', color: '#173d30' }}>

@@ -38,7 +38,7 @@ const queryKeys = {
   plans: ['subscription-admin', 'plans'] as const,
   subscriptions: ['subscription-admin', 'subscriptions'] as const,
 }
-const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
+const tierNames = { BASIC: 'Básico', INTERMEDIATE: 'Intermediário', ADVANCED: 'Avançado' } as const
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
 function getPlanSortField(field?: string): AdminPlanListQuery['sortBy'] {
   switch (field) {

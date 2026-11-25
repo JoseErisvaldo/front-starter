@@ -63,8 +63,8 @@ type SubscriptionFormProps = {
 
 const tiers = [
   { value: 'BASIC', label: 'Básico' },
-  { value: 'SIMPLE', label: 'Simples' },
-  { value: 'PRO', label: 'Pro' },
+  { value: 'INTERMEDIATE', label: 'Intermediário' },
+  { value: 'ADVANCED', label: 'Avançado' },
 ] as const
 
 const recurrences = [
