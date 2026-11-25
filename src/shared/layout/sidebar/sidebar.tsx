@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Collapse,
   Drawer,
   IconButton,
   List,
@@ -14,6 +15,7 @@ import {
 } from "@mui/material";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import { useEffect, type ReactNode } from "react";
+import { useSidebarStore } from "./sidebar.store";
 
 export const SIDEBAR_WIDTH = { collapsed: 80, expanded: 280 };
 
@@ -116,6 +118,9 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const showLabels = isMobile || expanded;
   const isUser = role === "USER";
+  const openGroups = useSidebarStore((state) => state.openGroups);
+  const toggleGroup = useSidebarStore((state) => state.toggleGroup);
+  const isGroupOpen = (groupId: string) => openGroups[groupId] ?? true;
   const routes = isUser
     ? [
         { label: "Produtos", to: "/produtos", icon: <path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM9 4h6v2H9V4zm11 16H4V8h3v2h2V8h6v2h2V8h3v12z" /> },
@@ -236,9 +241,25 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
               sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
             />
           </ListItemButton>
+        {showLabels && (
+            <ListItemButton
+              aria-expanded={isGroupOpen("sales")}
+              onClick={() => toggleGroup("sales")}
+              sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+            >
+              <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
+                VENDAS
+              </Typography>
+              <SvgIcon sx={{ fontSize: 18, transform: isGroupOpen("sales") ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+                <path d="m7.41 8.59 4.59 4.58 4.59-4.58L18 10l-6 6-6-6z" />
+              </SvgIcon>
+            </ListItemButton>
+        )}
+        <Collapse in={!showLabels || isGroupOpen("sales")} timeout="auto" unmountOnExit={showLabels}>
+            <Box>
         <ListItemButton
-          component={RouterLink}
-          to="/admin/produtos"
+            component={RouterLink}
+            to="/admin/produtos"
           selected={pathname === "/admin/produtos"}
           aria-label="Produtos"
           sx={{
@@ -288,6 +309,24 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
         </ListItemButton>
+          </Box>
+        </Collapse>
+        {showLabels && (
+          <ListItemButton
+            aria-expanded={isGroupOpen("subscriptions")}
+            onClick={() => toggleGroup("subscriptions")}
+            sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+          >
+            <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
+              RECORRÊNCIA
+            </Typography>
+            <SvgIcon sx={{ fontSize: 18, transform: isGroupOpen("subscriptions") ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+              <path d="m7.41 8.59 4.59 4.58 4.59-4.58L18 10l-6 6-6-6z" />
+            </SvgIcon>
+          </ListItemButton>
+        )}
+        <Collapse in={!showLabels || isGroupOpen("subscriptions")} timeout="auto" unmountOnExit={showLabels}>
+          <Box>
         <ListItemButton
         component={RouterLink}
         to="/admin/assinaturas"
@@ -335,6 +374,24 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
         </ListItemButton>
+          </Box>
+        </Collapse>
+        {showLabels && (
+          <ListItemButton
+            aria-expanded={isGroupOpen("account")}
+            onClick={() => toggleGroup("account")}
+            sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+          >
+            <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
+              CONTA
+            </Typography>
+            <SvgIcon sx={{ fontSize: 18, transform: isGroupOpen("account") ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+              <path d="m7.41 8.59 4.59 4.58 4.59-4.58L18 10l-6 6-6-6z" />
+            </SvgIcon>
+          </ListItemButton>
+        )}
+        <Collapse in={!showLabels || isGroupOpen("account")} timeout="auto" unmountOnExit={showLabels}>
+          <Box>
         <ListItemButton
           component={RouterLink}
           to="/admin/conta"
@@ -361,6 +418,8 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
         </ListItemButton>
+          </Box>
+        </Collapse>
           </>}
         </List>
 
