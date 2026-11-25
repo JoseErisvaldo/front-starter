@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentProps } from 'react'
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Skeleton, Stack, SvgIcon, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Skeleton, Stack, SvgIcon, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useSearchParams } from 'react-router-dom'
@@ -103,6 +103,7 @@ export function SubscriptionsRoute() {
   const [detailsSubscriptionId, setDetailsSubscriptionId] = useState<string | null>(null)
   const [cancelConfirmationSubscriptionId, setCancelConfirmationSubscriptionId] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PublicSubscriptionPlan | null>(null)
+  const [selectedRecurrence, setSelectedRecurrence] = useState<PublicSubscriptionPlan['recurrence']>('MONTHLY')
   const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(null)
   const [checkoutError, setCheckoutError] = useState('')
   const [checkoutRetry, setCheckoutRetry] = useState(0)
@@ -124,6 +125,11 @@ export function SubscriptionsRoute() {
     refetchInterval: checkoutState === 'pending' ? 2500 : false,
     enabled: isMySubscriptionsPage || checkoutState === 'pending',
   })
+  const availableRecurrences = [...new Set(plans.data?.map((plan) => plan.recurrence) ?? [])]
+  const activeRecurrence = availableRecurrences.includes(selectedRecurrence)
+    ? selectedRecurrence
+    : availableRecurrences[0] ?? selectedRecurrence
+  const visiblePlans = plans.data?.filter((plan) => plan.recurrence === activeRecurrence) ?? []
   const createSubscription = useMutation({
     mutationFn: createSubscriptionService,
     onSuccess: async (subscription) => {
@@ -199,15 +205,64 @@ export function SubscriptionsRoute() {
     <LayoutUser onLogout={logout}>
       <Box sx={{ maxWidth: 1180, mx: 'auto', p: { xs: 2, sm: 3, md: 5 } }}>
         <Stack spacing={4}>
-          <Box>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+          <Box
+            sx={!isMySubscriptionsPage ? {
+              px: { xs: 2, sm: 4, md: 6 },
+              py: { xs: 5, sm: 7, md: 9 },
+              borderRadius: 3,
+              bgcolor: '#e1f0e5',
+              color: '#173d30',
+              textAlign: 'center',
+            } : undefined}
+          >
+            <Typography variant={isMySubscriptionsPage ? 'h4' : 'h3'} component="h1" sx={{ fontWeight: 750, letterSpacing: '-.04em' }}>
               {isMySubscriptionsPage ? 'Minhas assinaturas' : 'Planos de assinatura'}
             </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
+            <Typography color="text.secondary" sx={{
+              mt: 1.5,
+              maxWidth: 560,
+              mx: 'auto',
+            }}>
               {isMySubscriptionsPage
                 ? 'Acompanhe seus planos contratados, próximas cobranças e histórico.'
-                : 'Escolha um nível e a frequência de cobrança. A assinatura é gerenciada pelo Mercado Pago.'}
+                : 'Escolha o plano ideal para você e acompanhe sua assinatura com facilidade.'}
             </Typography>
+            {!isMySubscriptionsPage && availableRecurrences.length > 0 && (
+              <ToggleButtonGroup
+                exclusive
+                value={activeRecurrence}
+                onChange={(_event, value: PublicSubscriptionPlan['recurrence'] | null) => {
+                  if (value) setSelectedRecurrence(value)
+                }}
+                aria-label="Filtrar planos por recorrência"
+                sx={{
+                  mt: 3.5,
+                  p: 0.5,
+                  borderRadius: 2,
+                  bgcolor: '#edf2ee',
+                  '& .MuiToggleButtonGroup-grouped': { border: 0, borderRadius: '6px !important' },
+                }}
+              >
+                {availableRecurrences.map((recurrence) => (
+                  <ToggleButton
+                    key={recurrence}
+                    value={recurrence}
+                    aria-label={`Planos com cobrança ${recurrenceNames[recurrence].toLowerCase()}`}
+                    sx={{
+                      px: { xs: 1.5, sm: 2.5 },
+                      py: 1,
+                      color: 'text.secondary',
+                      textTransform: 'none',
+                      '&.Mui-selected': { color: '#fff', bgcolor: '#26714f' },
+                      '&.Mui-selected:hover': { bgcolor: '#1d6848' },
+                      '&:hover': { bgcolor: '#dce8df' },
+                    }}
+                  >
+                    {recurrenceNames[recurrence]}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            )}
           </Box>
 
           {!isMySubscriptionsPage && <>
@@ -215,7 +270,7 @@ export function SubscriptionsRoute() {
           {successMessage && <Alert severity="success">{successMessage}</Alert>}
           {!publicKey && <Alert severity="error">Configure VITE_MP_PUBLIC_KEY no frontend para habilitar a tokenização segura do cartão.</Alert>}
 
-          <Grid container spacing={2}>
+          <Grid container spacing={2.5} sx={{ mt: { xs: -1, md: -1.5 } }}>
             {plans.isLoading && Array.from({ length: 3 }, (_, index) => (
               <Grid key={`plan-skeleton-${index}`} size={{ xs: 12, sm: 6, md: 4 }}>
                 <Card variant="outlined" sx={{ height: '100%' }}>
@@ -230,15 +285,39 @@ export function SubscriptionsRoute() {
                 </Card>
               </Grid>
             ))}
-            {!plans.isLoading && plans.data?.map((plan) => (
+            {!plans.isLoading && visiblePlans.map((plan) => (
               <Grid key={plan.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <Card variant="outlined" sx={{ height: '100%', borderColor: selectedPlan?.id === plan.id ? 'primary.main' : 'divider' }}>
-                  <CardContent>
-                    <Stack spacing={1.5}>
-                      <Chip label={`${plan.name} · ${recurrenceNames[plan.recurrence]}`} sx={{ alignSelf: 'flex-start' }} />
-                      <Typography variant="h4" sx={{ fontWeight: 700 }}>{formatCurrency(plan.amount, plan.currency)}</Typography>
-                      <Typography color="text.secondary">por cobrança {recurrenceNames[plan.recurrence].toLowerCase()}</Typography>
-                      <Button variant={selectedPlan?.id === plan.id ? 'contained' : 'outlined'} disabled={!publicKey} onClick={() => {
+                <Card
+                  variant="outlined"
+                  sx={{
+                    height: '100%',
+                    borderColor: selectedPlan?.id === plan.id ? 'primary.main' : 'divider',
+                    borderRadius: 2,
+                    transition: 'border-color .2s, transform .2s',
+                    '&:hover': { borderColor: 'primary.main', transform: 'translateY(-3px)' },
+                  }}
+                >
+                  <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                    <Stack spacing={2} sx={{ height: '100%' }}>
+                      <Stack spacing={0.75}>
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>{plan.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Plano {tierNames[plan.tier].toLowerCase()} com cobrança {recurrenceNames[plan.recurrence].toLowerCase()}.
+                        </Typography>
+                      </Stack>
+                      <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.75, mt: 'auto !important' }}>
+                        <Typography variant="h3" sx={{ fontWeight: 750, letterSpacing: '-.04em', color: '#173d30' }}>
+                          {formatCurrency(plan.amount, plan.currency)}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          / {recurrenceNames[plan.recurrence].toLowerCase()}
+                        </Typography>
+                      </Box>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        disabled={!publicKey}
+                        onClick={() => {
                         setSuccessMessage('')
                         setCheckoutState(null)
                         setCheckoutError('')
@@ -246,7 +325,12 @@ export function SubscriptionsRoute() {
                         setNextPaymentDate(null)
                         createSubscription.reset()
                         setSelectedPlan(plan)
-                      }}>
+                        }}
+                        sx={{
+                          py: 1.1,
+                          fontWeight: 700,
+                        }}
+                      >
                         Assinar
                       </Button>
                     </Stack>
@@ -255,7 +339,8 @@ export function SubscriptionsRoute() {
               </Grid>
             ))}
           </Grid>
-          {plans.data?.length === 0 && !plans.isLoading && <Alert severity="info">Ainda não há planos disponíveis.</Alert>}
+          {!plans.isLoading && plans.data?.length === 0 && <Typography align="center" sx={{ color: 'text.secondary' }}>Ainda não há planos disponíveis.</Typography>}
+          {!plans.isLoading && (plans.data?.length ?? 0) > 0 && visiblePlans.length === 0 && <Typography align="center" sx={{ color: 'text.secondary' }}>Nenhum plano disponível para esta recorrência.</Typography>}
 
           <Drawer
             anchor="right"
