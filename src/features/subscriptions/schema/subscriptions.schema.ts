@@ -34,6 +34,7 @@ export const subscriptionRecordSchema = z.object({
   id: z.string().uuid(),
   status: z.string(),
   nextPaymentDate: z.string().nullable(),
+  nextPaymentCountdown: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
   plan: subscriptionPlanSchema,

@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentProps } from 'react'
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Stack, SvgIcon, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Skeleton, Stack, SvgIcon, Typography } from '@mui/material'
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -220,7 +220,21 @@ export function SubscriptionsRoute() {
           {!publicKey && <Alert severity="error">Configure VITE_MP_PUBLIC_KEY no frontend para habilitar a tokenização segura do cartão.</Alert>}
 
           <Grid container spacing={2}>
-            {plans.data?.map((plan) => (
+            {plans.isLoading && Array.from({ length: 3 }, (_, index) => (
+              <Grid key={`plan-skeleton-${index}`} size={{ xs: 12, sm: 6, md: 4 }}>
+                <Card variant="outlined" sx={{ height: '100%' }}>
+                  <CardContent>
+                    <Stack spacing={1.5}>
+                      <Skeleton variant="rounded" width="70%" height={32} />
+                      <Skeleton variant="text" width="55%" height={52} />
+                      <Skeleton variant="text" width="75%" />
+                      <Skeleton variant="rounded" width="100%" height={36} />
+                    </Stack>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+            {!plans.isLoading && plans.data?.map((plan) => (
               <Grid key={plan.id} size={{ xs: 12, sm: 6, md: 4 }}>
                 <Card variant="outlined" sx={{ height: '100%', borderColor: selectedPlan?.id === plan.id ? 'primary.main' : 'divider' }}>
                   <CardContent>
@@ -349,9 +363,17 @@ export function SubscriptionsRoute() {
           <Stack spacing={2}>
             <Typography variant="h5" component="h2">Minhas assinaturas</Typography>
             {subscriptions.isError && <Alert severity="error">{getApiErrorMessage(subscriptions.error)}</Alert>}
-            {subscriptions.data?.map((subscription) => {
-              const isCanceled = ['canceled', 'cancelled'].includes(subscription.status.toLowerCase())
-              return (
+            {subscriptions.isLoading && Array.from({ length: 2 }, (_, index) => (
+              <Paper key={`subscription-skeleton-${index}`} variant="outlined" sx={{ p: 2.5 }}>
+                <Stack spacing={1.5}>
+                  <Skeleton variant="text" width="55%" height={32} />
+                  <Skeleton variant="text" width="70%" />
+                  <Skeleton variant="text" width="40%" />
+                  <Skeleton variant="rounded" width={140} height={36} />
+                </Stack>
+              </Paper>
+            ))}
+            {!subscriptions.isLoading && subscriptions.data?.map((subscription) => (
                 <Paper key={subscription.id} variant="outlined" sx={{ p: 2.5 }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
                     <Box>
@@ -359,22 +381,19 @@ export function SubscriptionsRoute() {
                       <Typography color="text.secondary">
                         {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança · Status: {subscriptionStatusNames[subscription.status.toLowerCase()] ?? subscription.status}
                       </Typography>
-                      {subscription.nextPaymentDate && <Typography variant="body2" color="text.secondary">Próxima cobrança: {formatBrazilianDate(subscription.nextPaymentDate)}</Typography>}
+                      {subscription.nextPaymentDate && (
+                        <>
+                          <Typography variant="body2" color="text.secondary">Próxima cobrança: {formatBrazilianDate(subscription.nextPaymentDate)}</Typography>
+                          {subscription.nextPaymentCountdown && (
+                            <Typography variant="body2" color="text.secondary">{subscription.nextPaymentCountdown}</Typography>
+                          )}
+                        </>
+                      )}
                     </Box>
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                    <Stack direction="row" spacing={1}>
                       <Button variant="outlined" onClick={() => setDetailsSubscriptionId(subscription.id)}>
                         Ver detalhes
                       </Button>
-                      {!isCanceled && subscription.status !== 'error' && (
-                        <Button
-                          color="error"
-                          variant="outlined"
-                          disabled={cancelSubscription.isPending}
-                          onClick={() => cancelSubscription.mutate(subscription.id)}
-                        >
-                          Cancelar assinatura
-                        </Button>
-                      )}
                     </Stack>
                   </Stack>
                   {subscription.charges.length > 0 && (
@@ -388,8 +407,7 @@ export function SubscriptionsRoute() {
                     </Stack>
                   )}
                 </Paper>
-              )
-            })}
+            ))}
             {subscriptions.data?.length === 0 && !subscriptions.isLoading && <Alert severity="info">Você ainda não possui assinaturas.</Alert>}
           </Stack>
 
@@ -448,6 +466,11 @@ export function SubscriptionsRoute() {
                           label="Próxima cobrança"
                           value={detailsSubscription.nextPaymentDate ? formatBrazilianDate(detailsSubscription.nextPaymentDate) : 'Ainda não agendada'}
                         />
+                        {detailsSubscription.nextPaymentCountdown && (
+                          <Typography variant="body2" color="text.secondary">
+                            {detailsSubscription.nextPaymentCountdown}
+                          </Typography>
+                        )}
                       </Stack>
                     </Paper>
 
@@ -479,6 +502,17 @@ export function SubscriptionsRoute() {
                       <Alert severity="info">Ainda não há cobranças registradas para esta assinatura.</Alert>
                     )}
                     <Alert severity="info">Por segurança, os dados do cartão não são armazenados nem exibidos nesta tela.</Alert>
+                    {cancelSubscription.isError && <Alert severity="error">{getApiErrorMessage(cancelSubscription.error)}</Alert>}
+                    {!['canceled', 'cancelled'].includes(detailsSubscription.status.toLowerCase()) && detailsSubscription.status.toLowerCase() !== 'error' && (
+                      <Button
+                        color="error"
+                        variant="outlined"
+                        disabled={cancelSubscription.isPending}
+                        onClick={() => cancelSubscription.mutate(detailsSubscription.id)}
+                      >
+                        {cancelSubscription.isPending ? 'Cancelando assinatura…' : 'Cancelar assinatura'}
+                      </Button>
+                    )}
                   </Stack>
                 </DialogContent>
               </Box>
