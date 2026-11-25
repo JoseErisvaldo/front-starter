@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react'
-import { Alert, Chip, Paper, Stack, SvgIcon, Typography } from '@mui/material'
+import { Alert, Chip, Divider, Link, Paper, Stack, SvgIcon, Typography } from '@mui/material'
 import { DataGrid, GridActionsCellItem, type GridColDef } from '@mui/x-data-grid'
 import { ptBR } from '@mui/x-data-grid/locales'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LayoutAdmin } from '../../../../../shared/layout/layout-admin'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
+import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { SubscriptionPlanForm } from '../components/subscription-plan-form'
@@ -23,11 +24,130 @@ const queryKeys = {
 }
 const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
+const subscriptionStatusNames: Record<string, string> = {
+  authorized: 'Ativa',
+  active: 'Ativa',
+  pending: 'Pendente',
+  paused: 'Pausada',
+  canceled: 'Cancelada',
+  cancelled: 'Cancelada',
+  error: 'Erro na criação',
+  rejected: 'Recusada',
+}
+const subscriptionStatusColors: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
+  authorized: 'success',
+  active: 'success',
+  pending: 'warning',
+  paused: 'warning',
+  canceled: 'default',
+  cancelled: 'default',
+  error: 'error',
+  rejected: 'error',
+}
+
+function AdminSubscriptionDetails({ subscription }: { subscription: SubscriptionRecord }) {
+  const status = subscription.status.toLowerCase()
+
+  return (
+    <Stack spacing={2.5} sx={{ minWidth: 0 }}>
+      <Stack spacing={1}>
+        <Typography variant="subtitle2" color="text.secondary">Status da assinatura</Typography>
+        <Chip
+          label={subscriptionStatusNames[status] ?? translatePaymentStatus(status)}
+          color={subscriptionStatusColors[status] ?? 'default'}
+          size="small"
+          sx={{ alignSelf: 'flex-start' }}
+        />
+      </Stack>
+
+      <Divider />
+      <Stack spacing={0.75}>
+        <Typography variant="subtitle2" color="text.secondary">Cliente</Typography>
+        <Typography sx={{ fontWeight: 600 }}>{subscription.user?.name ?? '—'}</Typography>
+        <Typography color="text.secondary">{subscription.user?.email ?? '—'}</Typography>
+      </Stack>
+
+      <Divider />
+      <Stack spacing={0.75}>
+        <Typography variant="subtitle2" color="text.secondary">Plano contratado</Typography>
+        <Typography sx={{ fontWeight: 600 }}>{subscription.plan.name}</Typography>
+        <Typography color="text.secondary">
+          {tierNames[subscription.plan.tier]} · {recurrenceNames[subscription.plan.recurrence]}
+        </Typography>
+        <Typography color="text.secondary">
+          {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança
+        </Typography>
+      </Stack>
+
+      <Divider />
+      <Stack spacing={0.75}>
+        <Typography variant="subtitle2" color="text.secondary">Datas</Typography>
+        <Typography variant="body2">Criada em: {formatBrazilianDate(subscription.createdAt)}</Typography>
+        <Typography variant="body2">Atualizada em: {formatBrazilianDate(subscription.updatedAt)}</Typography>
+        <Typography variant="body2">
+          Próxima cobrança: {subscription.nextPaymentDate ? formatBrazilianDate(subscription.nextPaymentDate) : 'Ainda não agendada'}
+        </Typography>
+        {subscription.nextPaymentCountdown && (
+          <Typography variant="body2" color="text.secondary">{subscription.nextPaymentCountdown}</Typography>
+        )}
+      </Stack>
+
+      <Divider />
+      <Stack spacing={1.25}>
+        <Typography variant="subtitle2" color="text.secondary">Cobranças recentes</Typography>
+        {subscription.charges.length > 0 ? subscription.charges.map((charge) => (
+          <Paper key={charge.id} variant="outlined" sx={{ p: 1.5 }}>
+            <Stack spacing={0.75}>
+              <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                <Typography sx={{ fontWeight: 600 }}>
+                  {charge.amount === null ? 'Valor indisponível' : formatCurrency(charge.amount, charge.currency ?? subscription.plan.currency)}
+                </Typography>
+                <Chip size="small" label={translatePaymentStatus(charge.status)} />
+              </Stack>
+              <Typography variant="body2" color="text.secondary">
+                {charge.paidAt ? 'Pago em' : 'Registrado em'}: {formatBrazilianDate(charge.paidAt ?? charge.createdAt)}
+              </Typography>
+              {charge.statusDetail && (
+                <Typography variant="body2" color="text.secondary">
+                  Detalhe: {translatePaymentStatusDetail(charge.statusDetail) ?? charge.statusDetail}
+                </Typography>
+              )}
+              <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
+                Referência Mercado Pago: {charge.providerPaymentId}
+              </Typography>
+            </Stack>
+          </Paper>
+        )) : <Typography variant="body2" color="text.secondary">Nenhuma cobrança registrada.</Typography>}
+      </Stack>
+
+      <Divider />
+      <Stack spacing={0.75}>
+        <Typography variant="subtitle2" color="text.secondary">Referências</Typography>
+        <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>ID local: {subscription.id}</Typography>
+        {subscription.externalReference && (
+          <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>Referência externa: {subscription.externalReference}</Typography>
+        )}
+        {subscription.providerSubscriptionId && (
+          <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>ID Mercado Pago: {subscription.providerSubscriptionId}</Typography>
+        )}
+        {subscription.plan.providerPlanId && (
+          <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>ID do plano Mercado Pago: {subscription.plan.providerPlanId}</Typography>
+        )}
+        {subscription.plan.checkoutUrl && (
+          <Link href={subscription.plan.checkoutUrl} target="_blank" rel="noreferrer" variant="body2">
+            Abrir checkout do plano
+          </Link>
+        )}
+      </Stack>
+    </Stack>
+  )
+}
 
 export function AdminSubscriptionsRoute() {
   const client = useQueryClient()
   const logout = useLogout()
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionRecord | null>(null)
   const openActionRef = useRef<(id: string) => void>(() => {})
   const plans = useQuery({ queryKey: queryKeys.plans, queryFn: getAdminPlansService })
   const subscriptions = useQuery({ queryKey: queryKeys.subscriptions, queryFn: getAdminSubscriptionsService })
@@ -83,8 +203,29 @@ export function AdminSubscriptionsRoute() {
     { field: 'customer', headerName: 'Cliente', flex: 1, minWidth: 200, valueGetter: (_value, row) => row.user?.name ?? '—' },
     { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220, valueGetter: (_value, row) => row.user?.email ?? '—' },
     { field: 'plan', headerName: 'Plano', width: 220, valueGetter: (_value, row) => `${row.plan.name} · ${recurrenceNames[row.plan.recurrence]}` },
-    { field: 'status', headerName: 'Status', width: 140, renderCell: ({ row }) => <Chip label={row.status} size="small" variant="outlined" /> },
+    { field: 'status', headerName: 'Status', width: 140, renderCell: ({ row }) => {
+      const status = row.status.toLowerCase()
+      return <Chip label={subscriptionStatusNames[status] ?? translatePaymentStatus(status)} color={subscriptionStatusColors[status] ?? 'default'} size="small" />
+    } },
     { field: 'nextPaymentDate', headerName: 'Próxima cobrança', width: 180, valueFormatter: (value) => value ? formatBrazilianDate(String(value)) : '—' },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Ações',
+      width: 80,
+      getActions: ({ row }) => [
+        <GridActionsCellItem
+          key="details"
+          icon={<SvgIcon><path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></SvgIcon>}
+          label="Ver detalhes"
+          showInMenu
+          onClick={() => {
+            setSelectedSubscription(row)
+            openActionRef.current('subscription-details')
+          }}
+        />,
+      ],
+    },
   ], [])
 
   return (
@@ -93,6 +234,16 @@ export function AdminSubscriptionsRoute() {
       subtitle="Gerencie as opções de recorrência e acompanhe as assinaturas dos clientes."
       onLogout={logout}
       actions={[
+        {
+          id: 'subscription-details',
+          title: 'Detalhes da assinatura',
+          subtitle: selectedSubscription
+            ? `${selectedSubscription.user?.name ?? 'Cliente'} · ${selectedSubscription.plan.name}`
+            : undefined,
+          content: selectedSubscription
+            ? <AdminSubscriptionDetails subscription={selectedSubscription} />
+            : null,
+        },
         {
           id: 'create-subscription-plan',
           label: 'Nova opção',
