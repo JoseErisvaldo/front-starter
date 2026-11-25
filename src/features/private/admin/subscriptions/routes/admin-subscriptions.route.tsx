@@ -10,6 +10,7 @@ import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilia
 import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
 import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { SubscriptionPlanForm } from '../components/subscription-plan-form'
+import { SubscriptionStatusChip } from '../../../../subscriptions/components/subscription-status-chip'
 import {
   AdminSubscriptionPlanFiltersForm,
   AdminSubscriptionsFiltersForm,
@@ -39,26 +40,6 @@ const queryKeys = {
 }
 const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
-const subscriptionStatusNames: Record<string, string> = {
-  authorized: 'Ativa',
-  active: 'Ativa',
-  pending: 'Pendente',
-  paused: 'Pausada',
-  canceled: 'Cancelada',
-  cancelled: 'Cancelada',
-  error: 'Erro na criação',
-  rejected: 'Recusada',
-}
-const subscriptionStatusColors: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
-  authorized: 'success',
-  active: 'success',
-  pending: 'warning',
-  paused: 'warning',
-  canceled: 'default',
-  cancelled: 'default',
-  error: 'error',
-  rejected: 'error',
-}
 function getPlanSortField(field?: string): AdminPlanListQuery['sortBy'] {
   switch (field) {
     case 'tier':
@@ -86,18 +67,11 @@ function getSubscriptionSortField(field?: string): AdminSubscriptionsQuery['sort
 }
 
 function AdminSubscriptionDetails({ subscription }: { subscription: SubscriptionRecord }) {
-  const status = subscription.status.toLowerCase()
-
   return (
     <Stack spacing={2.5} sx={{ minWidth: 0 }}>
       <Stack spacing={1}>
         <Typography variant="subtitle2" color="text.secondary">Status da assinatura</Typography>
-        <Chip
-          label={subscriptionStatusNames[status] ?? translatePaymentStatus(status)}
-          color={subscriptionStatusColors[status] ?? 'default'}
-          size="small"
-          sx={{ alignSelf: 'flex-start' }}
-        />
+        <SubscriptionStatusChip status={subscription.status} />
       </Stack>
 
       <Divider />
@@ -288,10 +262,7 @@ export function AdminSubscriptionsRoute() {
     { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220, valueGetter: (_value, row) => row.user?.email ?? '—' },
     { field: 'plan', headerName: 'Plano', width: 220, valueGetter: (_value, row) => `${row.plan.name} · ${recurrenceNames[row.plan.recurrence]}` },
     { field: 'amount', headerName: 'Valor', width: 130, valueGetter: (_value, row) => row.plan.amount, valueFormatter: (value) => formatCurrency(Number(value), 'BRL') },
-    { field: 'status', headerName: 'Status', width: 140, renderCell: ({ row }) => {
-      const status = row.status.toLowerCase()
-      return <Chip label={subscriptionStatusNames[status] ?? translatePaymentStatus(status)} color={subscriptionStatusColors[status] ?? 'default'} size="small" />
-    } },
+    { field: 'status', headerName: 'Status', width: 140, renderCell: ({ row }) => <SubscriptionStatusChip status={row.status} /> },
     { field: 'nextPaymentDate', headerName: 'Próxima cobrança', width: 180, valueFormatter: (value) => value ? formatBrazilianDate(String(value)) : '—' },
     { field: 'createdAt', headerName: 'Criada em', width: 150, valueFormatter: (value) => formatBrazilianDate(String(value)) },
     {

@@ -11,6 +11,7 @@ import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilia
 import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { logError } from '../../../../../shared/lib/log-error'
+import { SubscriptionStatusChip } from '../../../../subscriptions/components/subscription-status-chip'
 import {
   cancelSubscriptionService,
   createSubscriptionService,
@@ -25,26 +26,9 @@ if (publicKey) initMercadoPago(publicKey, { locale: 'pt-BR' })
 
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
 const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
-const subscriptionStatusNames: Record<string, string> = {
-  authorized: 'Ativa',
-  pending: 'Pendente',
-  paused: 'Pausada',
-  canceled: 'Cancelada',
-  cancelled: 'Cancelada',
-  error: 'Erro na criação',
-}
 const queryKeys = {
   plans: ['subscription-plans'] as const,
   mine: ['my-subscriptions'] as const,
-}
-const subscriptionStatusColors: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
-  authorized: 'success',
-  active: 'success',
-  pending: 'warning',
-  paused: 'warning',
-  canceled: 'default',
-  cancelled: 'default',
-  error: 'error',
 }
 type CardPaymentSubmit = NonNullable<ComponentProps<typeof CardPayment>['onSubmit']>
 type CheckoutState = 'success' | 'error' | 'pending'
@@ -393,9 +377,12 @@ export function SubscriptionsRoute() {
                 <Paper key={subscription.id} variant="outlined" sx={{ p: 2.5 }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
                     <Box>
-                      <Typography variant="h6">{subscription.plan.name} · {recurrenceNames[subscription.plan.recurrence]}</Typography>
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                        <Typography variant="h6">{subscription.plan.name} · {recurrenceNames[subscription.plan.recurrence]}</Typography>
+                        <SubscriptionStatusChip status={subscription.status} />
+                      </Stack>
                       <Typography color="text.secondary">
-                        {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança · Status: {subscriptionStatusNames[subscription.status.toLowerCase()] ?? subscription.status}
+                        {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança
                       </Typography>
                       {subscription.nextPaymentDate && (
                         <>
@@ -457,10 +444,7 @@ export function SubscriptionsRoute() {
                 <DialogContent dividers sx={{ flex: 1, minHeight: 0, p: { xs: 2, sm: 3 } }}>
                   <Stack spacing={2.5}>
                     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                      <Chip
-                        label={subscriptionStatusNames[detailsSubscription.status.toLowerCase()] ?? detailsSubscription.status}
-                        color={subscriptionStatusColors[detailsSubscription.status.toLowerCase()] ?? 'default'}
-                      />
+                      <SubscriptionStatusChip status={detailsSubscription.status} size="medium" />
                       <Typography variant="h6">{detailsSubscription.plan.name}</Typography>
                     </Stack>
 
