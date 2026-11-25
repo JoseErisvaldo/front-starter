@@ -1,22 +1,36 @@
 import { useMemo, useRef, useState } from 'react'
-import { Alert, Chip, Divider, Link, Paper, Stack, SvgIcon, Typography } from '@mui/material'
-import { DataGrid, GridActionsCellItem, type GridColDef } from '@mui/x-data-grid'
+import { Badge, Chip, Divider, IconButton, Link, Paper, Stack, SvgIcon, Typography } from '@mui/material'
+import { DataGrid, GridActionsCellItem, type GridColDef, type GridPaginationModel, type GridSortModel } from '@mui/x-data-grid'
 import { ptBR } from '@mui/x-data-grid/locales'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LayoutAdmin } from '../../../../../shared/layout/layout-admin'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
 import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
-import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { SubscriptionPlanForm } from '../components/subscription-plan-form'
+import {
+  AdminSubscriptionPlanFiltersForm,
+  AdminSubscriptionsFiltersForm,
+  emptyPlanFilters,
+  emptySubscriptionFilters,
+  getActiveSubscriptionFilterCount,
+  getActiveSubscriptionPlanFilterCount,
+  type AdminPlanFilters,
+  type AdminSubscriptionFilters,
+} from '../components/admin-subscription-filters'
 import {
   deactivateSubscriptionPlanService,
   getAdminPlansService,
   getAdminSubscriptionsService,
   updateSubscriptionPlanService,
 } from '../services/subscriptions.service'
-import type { SubscriptionPlan, SubscriptionRecord } from '../../../../subscriptions/schema/subscriptions.schema'
+import type {
+  AdminPlanListQuery,
+  AdminSubscriptionsQuery,
+  SubscriptionPlan,
+  SubscriptionRecord,
+} from '../../../../subscriptions/schema/subscriptions.schema'
 
 const queryKeys = {
   plans: ['subscription-admin', 'plans'] as const,
@@ -43,6 +57,31 @@ const subscriptionStatusColors: Record<string, 'default' | 'success' | 'warning'
   cancelled: 'default',
   error: 'error',
   rejected: 'error',
+}
+function getPlanSortField(field?: string): AdminPlanListQuery['sortBy'] {
+  switch (field) {
+    case 'tier':
+    case 'recurrence':
+    case 'amount':
+    case 'active':
+      return field
+    default:
+      return 'name'
+  }
+}
+
+function getSubscriptionSortField(field?: string): AdminSubscriptionsQuery['sortBy'] {
+  switch (field) {
+    case 'customer':
+    case 'email':
+    case 'plan':
+    case 'status':
+    case 'nextPaymentDate':
+    case 'amount':
+      return field
+    default:
+      return 'createdAt'
+  }
 }
 
 function AdminSubscriptionDetails({ subscription }: { subscription: SubscriptionRecord }) {
@@ -149,8 +188,49 @@ export function AdminSubscriptionsRoute() {
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionRecord | null>(null)
   const openActionRef = useRef<(id: string) => void>(() => {})
-  const plans = useQuery({ queryKey: queryKeys.plans, queryFn: getAdminPlansService })
-  const subscriptions = useQuery({ queryKey: queryKeys.subscriptions, queryFn: getAdminSubscriptionsService })
+  const [planPaginationModel, setPlanPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 })
+  const [subscriptionPaginationModel, setSubscriptionPaginationModel] = useState<GridPaginationModel>({ page: 0, pageSize: 10 })
+  const [planSortModel, setPlanSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }])
+  const [subscriptionSortModel, setSubscriptionSortModel] = useState<GridSortModel>([{ field: 'createdAt', sort: 'desc' }])
+  const [planFilters, setPlanFilters] = useState<AdminPlanFilters>(emptyPlanFilters)
+  const [subscriptionFilters, setSubscriptionFilters] = useState<AdminSubscriptionFilters>(emptySubscriptionFilters)
+
+  const planSort = planSortModel[0]
+  const planQuery: AdminPlanListQuery = {
+    page: planPaginationModel.page,
+    pageSize: planPaginationModel.pageSize,
+    sortBy: getPlanSortField(planSort?.field),
+    sortOrder: planSort?.sort === 'desc' ? 'desc' : 'asc',
+    ...(planFilters.search ? { search: planFilters.search } : {}),
+    ...(planFilters.tier ? { tier: planFilters.tier } : {}),
+    ...(planFilters.recurrence ? { recurrence: planFilters.recurrence } : {}),
+    ...(planFilters.active !== '' ? { active: planFilters.active } : {}),
+  }
+  const subscriptionSort = subscriptionSortModel[0]
+  const subscriptionQuery: AdminSubscriptionsQuery = {
+    page: subscriptionPaginationModel.page,
+    pageSize: subscriptionPaginationModel.pageSize,
+    sortBy: getSubscriptionSortField(subscriptionSort?.field),
+    sortOrder: subscriptionSort?.sort === 'asc' ? 'asc' : 'desc',
+    ...(subscriptionFilters.search ? { search: subscriptionFilters.search } : {}),
+    ...(subscriptionFilters.status ? { status: subscriptionFilters.status } : {}),
+    ...(subscriptionFilters.tier ? { tier: subscriptionFilters.tier } : {}),
+    ...(subscriptionFilters.recurrence ? { recurrence: subscriptionFilters.recurrence } : {}),
+    ...(subscriptionFilters.createdAtFrom ? { createdAtFrom: subscriptionFilters.createdAtFrom } : {}),
+    ...(subscriptionFilters.createdAtTo ? { createdAtTo: subscriptionFilters.createdAtTo } : {}),
+    ...(subscriptionFilters.nextPaymentDateFrom ? { nextPaymentDateFrom: subscriptionFilters.nextPaymentDateFrom } : {}),
+    ...(subscriptionFilters.nextPaymentDateTo ? { nextPaymentDateTo: subscriptionFilters.nextPaymentDateTo } : {}),
+  }
+  const plans = useQuery({
+    queryKey: [...queryKeys.plans, planQuery],
+    queryFn: () => getAdminPlansService(planQuery),
+    placeholderData: keepPreviousData,
+  })
+  const subscriptions = useQuery({
+    queryKey: [...queryKeys.subscriptions, subscriptionQuery],
+    queryFn: () => getAdminSubscriptionsService(subscriptionQuery),
+    placeholderData: keepPreviousData,
+  })
   const removePlan = useMutation({
     mutationFn: deactivateSubscriptionPlanService,
     onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.plans }),
@@ -203,11 +283,13 @@ export function AdminSubscriptionsRoute() {
     { field: 'customer', headerName: 'Cliente', flex: 1, minWidth: 200, valueGetter: (_value, row) => row.user?.name ?? '—' },
     { field: 'email', headerName: 'E-mail', flex: 1, minWidth: 220, valueGetter: (_value, row) => row.user?.email ?? '—' },
     { field: 'plan', headerName: 'Plano', width: 220, valueGetter: (_value, row) => `${row.plan.name} · ${recurrenceNames[row.plan.recurrence]}` },
+    { field: 'amount', headerName: 'Valor', width: 130, valueGetter: (_value, row) => row.plan.amount, valueFormatter: (value) => formatCurrency(Number(value), 'BRL') },
     { field: 'status', headerName: 'Status', width: 140, renderCell: ({ row }) => {
       const status = row.status.toLowerCase()
       return <Chip label={subscriptionStatusNames[status] ?? translatePaymentStatus(status)} color={subscriptionStatusColors[status] ?? 'default'} size="small" />
     } },
     { field: 'nextPaymentDate', headerName: 'Próxima cobrança', width: 180, valueFormatter: (value) => value ? formatBrazilianDate(String(value)) : '—' },
+    { field: 'createdAt', headerName: 'Criada em', width: 150, valueFormatter: (value) => formatBrazilianDate(String(value)) },
     {
       field: 'actions',
       type: 'actions',
@@ -243,6 +325,38 @@ export function AdminSubscriptionsRoute() {
           content: selectedSubscription
             ? <AdminSubscriptionDetails subscription={selectedSubscription} />
             : null,
+        },
+        {
+          id: 'subscription-plan-filters',
+          title: 'Filtrar opções de plano',
+          subtitle: 'Refine os planos por nome, nível, recorrência ou status.',
+          content: ({ close }) => (
+            <AdminSubscriptionPlanFiltersForm
+              key={JSON.stringify(planFilters)}
+              filters={planFilters}
+              onApply={(nextFilters) => {
+                setPlanFilters(nextFilters)
+                setPlanPaginationModel((current) => ({ ...current, page: 0 }))
+              }}
+              onClose={close}
+            />
+          ),
+        },
+        {
+          id: 'customer-subscription-filters',
+          title: 'Filtrar assinaturas',
+          subtitle: 'Refine as assinaturas por cliente, plano, nível, recorrência ou status.',
+          content: ({ close }) => (
+            <AdminSubscriptionsFiltersForm
+              key={JSON.stringify(subscriptionFilters)}
+              filters={subscriptionFilters}
+              onApply={(nextFilters) => {
+                setSubscriptionFilters(nextFilters)
+                setSubscriptionPaginationModel((current) => ({ ...current, page: 0 }))
+              }}
+              onClose={close}
+            />
+          ),
         },
         {
           id: 'create-subscription-plan',
@@ -281,38 +395,92 @@ export function AdminSubscriptionsRoute() {
         return <Stack spacing={4}>
           <Stack spacing={1.5}>
             <Typography variant="h5" component="h2">Opções de plano</Typography>
-            {plans.isError && <Alert severity="error">{getApiErrorMessage(plans.error)}</Alert>}
-            {removePlan.isError && <Alert severity="error">{getApiErrorMessage(removePlan.error)}</Alert>}
-            {activatePlan.isError && <Alert severity="error">{getApiErrorMessage(activatePlan.error)}</Alert>}
             <Paper variant="outlined" sx={{ width: '100%' }}>
+              <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1, pt: 0.5 }}>
+                <IconButton aria-label="Abrir filtros de opções de plano" onClick={() => openAction('subscription-plan-filters')}>
+                  <Badge badgeContent={getActiveSubscriptionPlanFilterCount(planFilters)} color="primary">
+                    <SvgIcon>
+                      <path d="M3 5h18v2H3zm3 6h12v2H6zm4 6h4v2h-4z" />
+                    </SvgIcon>
+                  </Badge>
+                </IconButton>
+              </Stack>
+              {(removePlan.isError || activatePlan.isError) && (
+                <Typography variant="body2" color="text.secondary" sx={{ px: 2, pb: 1 }}>
+                  Ocorreu um erro ao atualizar o plano.
+                </Typography>
+              )}
               <DataGrid
                 aria-label="Opções de recorrência dos planos"
-                rows={plans.data ?? []}
+                rows={plans.data?.plans ?? []}
                 columns={planColumns}
                 autoHeight
                 loading={plans.isLoading || plans.isFetching}
                 disableRowSelectionOnClick
+                disableColumnMenu
+                paginationMode="server"
+                sortingMode="server"
+                rowCount={plans.data?.pagination.total ?? 0}
+                paginationModel={planPaginationModel}
+                onPaginationModelChange={setPlanPaginationModel}
+                sortModel={planSortModel}
+                onSortModelChange={setPlanSortModel}
                 pageSizeOptions={[10, 25]}
-                initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
                 localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                slots={{
+                  noRowsOverlay: () => (
+                    <Stack sx={{ height: '100%', alignItems: 'center', justifyContent: 'center', px: 2 }}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        {plans.isError
+                          ? 'Ocorreu um erro ao carregar os planos.'
+                          : 'Nenhum registro encontrado.'}
+                      </Typography>
+                    </Stack>
+                  ),
+                }}
               />
             </Paper>
-            {plans.data?.length === 0 && <Alert severity="info">Nenhuma opção cadastrada. Crie os níveis e recorrências que deseja oferecer.</Alert>}
           </Stack>
           <Stack spacing={1.5}>
             <Typography variant="h5" component="h2">Assinaturas de clientes</Typography>
-            {subscriptions.isError && <Alert severity="error">{getApiErrorMessage(subscriptions.error)}</Alert>}
             <Paper variant="outlined" sx={{ width: '100%' }}>
+              <Stack direction="row" sx={{ justifyContent: 'flex-end', px: 1, pt: 0.5 }}>
+                <IconButton aria-label="Abrir filtros de assinaturas" onClick={() => openAction('customer-subscription-filters')}>
+                  <Badge badgeContent={getActiveSubscriptionFilterCount(subscriptionFilters)} color="primary">
+                    <SvgIcon>
+                      <path d="M3 5h18v2H3zm3 6h12v2H6zm4 6h4v2h-4z" />
+                    </SvgIcon>
+                  </Badge>
+                </IconButton>
+              </Stack>
               <DataGrid
                 aria-label="Assinaturas dos clientes"
-                rows={subscriptions.data ?? []}
+                rows={subscriptions.data?.subscriptions ?? []}
                 columns={subscriptionColumns}
                 autoHeight
                 loading={subscriptions.isLoading || subscriptions.isFetching}
                 disableRowSelectionOnClick
+                disableColumnMenu
+                paginationMode="server"
+                sortingMode="server"
+                rowCount={subscriptions.data?.pagination.total ?? 0}
+                paginationModel={subscriptionPaginationModel}
+                onPaginationModelChange={setSubscriptionPaginationModel}
+                sortModel={subscriptionSortModel}
+                onSortModelChange={setSubscriptionSortModel}
                 pageSizeOptions={[10, 25, 50]}
-                initialState={{ pagination: { paginationModel: { page: 0, pageSize: 10 } } }}
                 localeText={ptBR.components.MuiDataGrid.defaultProps.localeText}
+                slots={{
+                  noRowsOverlay: () => (
+                    <Stack sx={{ height: '100%', alignItems: 'center', justifyContent: 'center', px: 2 }}>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        {subscriptions.isError
+                          ? 'Ocorreu um erro ao carregar as assinaturas.'
+                          : 'Nenhum registro encontrado.'}
+                      </Typography>
+                    </Stack>
+                  ),
+                }}
               />
             </Paper>
           </Stack>

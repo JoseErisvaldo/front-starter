@@ -4,13 +4,15 @@ import {
   adminPlansResponseSchema,
   planInputSchema,
   subscriptionsResponseSchema,
+  type AdminPlanListQuery,
+  type AdminSubscriptionsQuery,
   type PlanInput,
 } from '../../../../subscriptions/schema/subscriptions.schema'
 
-export async function getAdminPlansService() {
+export async function getAdminPlansService(query: AdminPlanListQuery) {
   try {
-    const response = await httpClient.get('/subscriptions/admin/plans')
-    return adminPlansResponseSchema.parse(response.data).plans
+    const response = await httpClient.get('/subscriptions/admin/plans', { params: query })
+    return adminPlansResponseSchema.parse(response.data)
   } catch (error) {
     logError('getAdminPlansService', error)
     throw error
@@ -43,10 +45,10 @@ export async function deactivateSubscriptionPlanService(id: string) {
   }
 }
 
-export async function getAdminSubscriptionsService() {
+export async function getAdminSubscriptionsService(query: AdminSubscriptionsQuery) {
   try {
-    const response = await httpClient.get('/subscriptions/admin')
-    return subscriptionsResponseSchema.parse(response.data).subscriptions
+    const response = await httpClient.get('/subscriptions/admin', { params: query })
+    return subscriptionsResponseSchema.parse(response.data)
   } catch (error) {
     logError('getAdminSubscriptionsService', error)
     throw error

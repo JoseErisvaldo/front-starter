@@ -52,10 +52,50 @@ export const planInputSchema = z.object({
   active: z.boolean(),
 })
 
-export const adminPlansResponseSchema = z.object({ plans: z.array(subscriptionPlanSchema) })
-export const subscriptionsResponseSchema = z.object({ subscriptions: z.array(subscriptionRecordSchema) })
+export const adminPlanListQuerySchema = z.object({
+  page: z.number().int().min(0),
+  pageSize: z.number().int().min(1).max(100),
+  sortBy: z.enum(['name', 'tier', 'recurrence', 'amount', 'active', 'createdAt']),
+  sortOrder: z.enum(['asc', 'desc']),
+  search: z.string().optional(),
+  tier: z.enum(['BASIC', 'SIMPLE', 'PRO']).optional(),
+  recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']).optional(),
+  active: z.enum(['true', 'false']).optional(),
+})
+
+export const adminSubscriptionsQuerySchema = z.object({
+  page: z.number().int().min(0),
+  pageSize: z.number().int().min(1).max(100),
+  sortBy: z.enum(['customer', 'email', 'plan', 'status', 'nextPaymentDate', 'createdAt', 'amount']),
+  sortOrder: z.enum(['asc', 'desc']),
+  search: z.string().optional(),
+  status: z.string().optional(),
+  tier: z.enum(['BASIC', 'SIMPLE', 'PRO']).optional(),
+  recurrence: z.enum(['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY']).optional(),
+  createdAtFrom: z.string().optional(),
+  createdAtTo: z.string().optional(),
+  nextPaymentDateFrom: z.string().optional(),
+  nextPaymentDateTo: z.string().optional(),
+})
+
+const adminPaginationSchema = z.object({
+  page: z.number().int(),
+  pageSize: z.number().int(),
+  total: z.number().int(),
+})
+
+export const adminPlansResponseSchema = z.object({
+  plans: z.array(subscriptionPlanSchema),
+  pagination: adminPaginationSchema,
+})
+export const subscriptionsResponseSchema = z.object({
+  subscriptions: z.array(subscriptionRecordSchema),
+  pagination: adminPaginationSchema,
+})
 
 export type SubscriptionPlan = z.infer<typeof subscriptionPlanSchema>
 export type PublicSubscriptionPlan = z.infer<typeof publicSubscriptionPlanSchema>
 export type PlanInput = z.infer<typeof planInputSchema>
+export type AdminPlanListQuery = z.infer<typeof adminPlanListQuerySchema>
+export type AdminSubscriptionsQuery = z.infer<typeof adminSubscriptionsQuerySchema>
 export type SubscriptionRecord = z.infer<typeof subscriptionRecordSchema>
