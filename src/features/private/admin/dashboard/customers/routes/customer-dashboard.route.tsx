@@ -1,29 +1,22 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Card, CardContent, CircularProgress, FormControl, MenuItem, Select, Stack, Typography } from '@mui/material'
-import { BarPlot, ChartsContainer, ChartsGrid, ChartsTooltip, ChartsXAxis, ChartsYAxis, LinePlot } from '@mui/x-charts'
-import { LayoutAdmin } from '../../../../../shared/layout/layout-admin'
-import { useLogout } from '../../../../public/auth/hooks/use-logout'
+import { BarPlot, ChartsContainer, ChartsGrid, ChartsReferenceLine, ChartsTooltip, ChartsXAxis, ChartsYAxis } from '@mui/x-charts'
+import { LayoutAdmin } from '../../../../../../shared/layout/layout-admin'
+import { formatBrazilianDayMonthLabel, formatBrazilianMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
+import { useLogout } from '../../../../../public/auth/hooks/use-logout'
 import { getCustomerDashboardService } from '../services/customer-dashboard.service'
 import type { CustomerDashboard } from '../schema/customer-dashboard.schema'
 
 type Period = 'daily' | 'monthly'
 
-function formatMonth(month: string) {
-  return new Intl.DateTimeFormat('pt-BR', { month: 'short', year: '2-digit', timeZone: 'UTC' })
-    .format(new Date(`${month}-01T00:00:00.000Z`))
-}
-
-function formatDay(day: string) {
-  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' })
-    .format(new Date(`${day}T00:00:00.000Z`))
-}
-
 function RegistrationChart({ data }: { data: CustomerDashboard['daily'] | CustomerDashboard['monthly'] }) {
+  const average = data[0]?.average ?? 0
   const chartData = data.map((item) => ({
-    label: 'date' in item ? formatDay(item.date) : formatMonth(item.month),
+    label: 'date' in item
+      ? formatBrazilianDayMonthLabel(item.date)
+      : formatBrazilianMonthLabel(item.month),
     registrations: item.count,
-    average: item.average,
   }))
 
   return (
@@ -33,14 +26,26 @@ function RegistrationChart({ data }: { data: CustomerDashboard['daily'] | Custom
       xAxis={[{ scaleType: 'band', dataKey: 'label', tickLabelStyle: { fontSize: 11 } }]}
       yAxis={[{ min: 0, width: 40 }]}
       series={[
-        { type: 'bar', dataKey: 'registrations', label: 'Novos clientes', color: '#31845c' },
-        { type: 'line', dataKey: 'average', label: 'Média', color: '#e39a32', curve: 'linear' },
+        {
+          type: 'bar',
+          dataKey: 'registrations',
+          label: 'Novos clientes',
+          color: '#31845c',
+          barLabel: 'value',
+          barLabelPlacement: 'outside',
+        },
       ]}
-      margin={{ left: 8, right: 16, top: 24, bottom: 40 }}
+      margin={{ left: 8, right: 16, top: 40, bottom: 40 }}
     >
       <ChartsGrid horizontal />
       <BarPlot />
-      <LinePlot />
+      <ChartsReferenceLine
+        y={average}
+        label={`Média: ${average.toFixed(1)}`}
+        labelAlign="end"
+        lineStyle={{ stroke: '#000000', strokeWidth: 2 }}
+        labelStyle={{ fill: '#000000', fontSize: 12, fontWeight: 700 }}
+      />
       <ChartsXAxis />
       <ChartsYAxis />
       <ChartsTooltip />

@@ -1,5 +1,5 @@
-import { httpClient } from '../../../../../shared/services/http-client'
-import { logError } from '../../../../../shared/lib/log-error'
+import { httpClient } from '../../../../../../shared/services/http-client'
+import { logError } from '../../../../../../shared/lib/log-error'
 import { customerDashboardSchema } from '../schema/customer-dashboard.schema'
 
 export async function getCustomerDashboardService() {

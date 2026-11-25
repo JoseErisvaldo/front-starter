@@ -33,7 +33,7 @@ const loadAdminCustomersRoute = () =>
   )
 
 const loadCustomerDashboardRoute = () =>
-  import('../features/private/admin/customers/routes/customer-dashboard.route').then(
+  import('../features/private/admin/dashboard/customers/routes/customer-dashboard.route').then(
     (module) => module.CustomerDashboardRoute,
   )
 
@@ -165,7 +165,7 @@ const adminRoutes: RouteObject[] = [
     ),
   },
   {
-    path: '/admin/clientes/dashboard',
+    path: '/admin/dashboard/clientes',
     element: (
       <AdminRouteLoader
         key="admin-customer-dashboard"

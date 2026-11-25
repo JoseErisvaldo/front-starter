@@ -288,6 +288,43 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
               sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
             />
           </ListItemButton>
+          {showLabels && (
+            <ListItemButton
+              aria-expanded={isGroupOpen("dashboard")}
+              onClick={() => toggleGroup("dashboard")}
+              sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+            >
+              <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
+                DASHBOARD
+              </Typography>
+              <SvgIcon sx={{ fontSize: 18, transform: isGroupOpen("dashboard") ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+                <path d="m7.41 8.59 4.59 4.58 4.59-4.58L18 10l-6 6-6-6z" />
+              </SvgIcon>
+            </ListItemButton>
+          )}
+          <Collapse in={!showLabels || isGroupOpen("dashboard")} timeout="auto" unmountOnExit={showLabels}>
+            <ListItemButton
+              component={RouterLink}
+              to="/admin/dashboard/clientes"
+              selected={pathname === "/admin/dashboard/clientes"}
+              aria-label="Dashboard de clientes"
+              sx={{
+                minHeight: 48, mt: 0.5, borderRadius: 2,
+                px: showLabels ? 2 : 1.5, color: "#66766b",
+                "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+                "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+                "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
+                <SvgIcon><path d="M3 3h18v2H3zm2 4h3v12H5zm5 5h3v7h-3zm5-4h3v11h-3z" /></SvgIcon>
+              </ListItemIcon>
+              <ListItemText
+                primary="Clientes"
+                sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+              />
+            </ListItemButton>
+          </Collapse>
         {showLabels && (
             <ListItemButton
               aria-expanded={isGroupOpen("sales")}
@@ -373,32 +410,6 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           </ListItemButton>
         )}
         <Collapse in={!showLabels || isGroupOpen("customers")} timeout="auto" unmountOnExit={showLabels}>
-          <ListItemButton
-            component={RouterLink}
-            to="/admin/clientes/dashboard"
-            selected={pathname === "/admin/clientes/dashboard"}
-            aria-label="Dashboard de clientes"
-            sx={{
-              minHeight: 48,
-              mt: 0.5,
-              borderRadius: 2,
-              px: showLabels ? 2 : 1.5,
-              color: "#66766b",
-              "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
-              "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
-              "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
-              <SvgIcon>
-                <path d="M3 3h18v2H3zm2 4h3v12H5zm5 5h3v7h-3zm5-4h3v11h-3z" />
-              </SvgIcon>
-            </ListItemIcon>
-            <ListItemText
-              primary="Dashboard"
-              sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
-            />
-          </ListItemButton>
           <ListItemButton
             component={RouterLink}
             to="/admin/clientes"
