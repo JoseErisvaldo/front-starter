@@ -144,8 +144,21 @@ const adminRoutes: RouteObject[] = [
       <AdminRouteLoader
         key="admin-subscriptions"
         title="Assinaturas"
-        subtitle="Gerencie os níveis, recorrências e assinaturas dos clientes."
-        columns={6}
+        subtitle="Gerencie as opções de planos e suas recorrências."
+        columns={5}
+        toolbar
+        loadRoute={loadAdminSubscriptionsRoute}
+      />
+    ),
+  },
+  {
+    path: '/admin/assinantes',
+    element: (
+      <AdminRouteLoader
+        key="admin-subscribers"
+        title="Assinantes"
+        subtitle="Acompanhe as assinaturas dos clientes e suas próximas cobranças."
+        columns={8}
         toolbar
         loadRoute={loadAdminSubscriptionsRoute}
       />

@@ -3,7 +3,8 @@ import { Badge, Chip, Divider, IconButton, Link, Paper, Stack, SvgIcon, Typograp
 import { DataGrid, GridActionsCellItem, type GridColDef, type GridPaginationModel, type GridSortModel } from '@mui/x-data-grid'
 import { ptBR } from '@mui/x-data-grid/locales'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { LayoutAdmin } from '../../../../../shared/layout/layout-admin'
+import { useLocation } from 'react-router-dom'
+import { LayoutAdmin, type LayoutAdminAction } from '../../../../../shared/layout/layout-admin'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
 import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
@@ -185,6 +186,7 @@ function AdminSubscriptionDetails({ subscription }: { subscription: Subscription
 export function AdminSubscriptionsRoute() {
   const client = useQueryClient()
   const logout = useLogout()
+  const isSubscribersPage = useLocation().pathname === '/admin/assinantes'
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null)
   const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionRecord | null>(null)
   const openActionRef = useRef<(id: string) => void>(() => {})
@@ -225,11 +227,13 @@ export function AdminSubscriptionsRoute() {
     queryKey: [...queryKeys.plans, planQuery],
     queryFn: () => getAdminPlansService(planQuery),
     placeholderData: keepPreviousData,
+    enabled: !isSubscribersPage,
   })
   const subscriptions = useQuery({
     queryKey: [...queryKeys.subscriptions, subscriptionQuery],
     queryFn: () => getAdminSubscriptionsService(subscriptionQuery),
     placeholderData: keepPreviousData,
+    enabled: isSubscribersPage,
   })
   const removePlan = useMutation({
     mutationFn: deactivateSubscriptionPlanService,
@@ -312,10 +316,12 @@ export function AdminSubscriptionsRoute() {
 
   return (
     <LayoutAdmin
-      title="Assinaturas"
-      subtitle="Gerencie as opções de recorrência e acompanhe as assinaturas dos clientes."
+      title={isSubscribersPage ? 'Assinantes' : 'Assinaturas'}
+      subtitle={isSubscribersPage
+        ? 'Acompanhe as assinaturas dos clientes e suas próximas cobranças.'
+        : 'Gerencie as opções de planos e suas recorrências.'}
       onLogout={logout}
-      actions={[
+      actions={([
         {
           id: 'subscription-details',
           title: 'Detalhes da assinatura',
@@ -387,12 +393,15 @@ export function AdminSubscriptionsRoute() {
             />
           ) : null,
         },
-      ]}
+      ] satisfies LayoutAdminAction[]).filter(({ id }) => isSubscribersPage
+        ? id === 'subscription-details' || id === 'customer-subscription-filters'
+        : id !== 'subscription-details' && id !== 'customer-subscription-filters')}
     >
       {({ openAction }) => (
         (() => {
         openActionRef.current = openAction
         return <Stack spacing={4}>
+          {!isSubscribersPage && (
           <Stack spacing={1.5}>
             <Typography variant="h5" component="h2">Opções de plano</Typography>
             <Paper variant="outlined" sx={{ width: '100%' }}>
@@ -441,6 +450,8 @@ export function AdminSubscriptionsRoute() {
               />
             </Paper>
           </Stack>
+          )}
+          {isSubscribersPage && (
           <Stack spacing={1.5}>
             <Typography variant="h5" component="h2">Assinaturas de clientes</Typography>
             <Paper variant="outlined" sx={{ width: '100%' }}>
@@ -484,6 +495,7 @@ export function AdminSubscriptionsRoute() {
               />
             </Paper>
           </Stack>
+          )}
         </Stack>
         })()
       )}
