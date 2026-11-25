@@ -305,6 +305,27 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           <Collapse in={!showLabels || isGroupOpen("dashboard")} timeout="auto" unmountOnExit={showLabels}>
             <ListItemButton
               component={RouterLink}
+              to="/admin/dashboard/pedidos"
+              selected={pathname === "/admin/dashboard/pedidos"}
+              aria-label="Dashboard de pedidos"
+              sx={{
+                minHeight: 48, mt: 0.5, borderRadius: 2,
+                px: showLabels ? 2 : 1.5, color: "#66766b",
+                "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+                "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+                "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
+                <SvgIcon><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14ZM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" /></SvgIcon>
+              </ListItemIcon>
+              <ListItemText
+                primary="Pedidos"
+                sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+              />
+            </ListItemButton>
+            <ListItemButton
+              component={RouterLink}
               to="/admin/dashboard/clientes"
               selected={pathname === "/admin/dashboard/clientes"}
               aria-label="Dashboard de clientes"

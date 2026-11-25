@@ -37,17 +37,23 @@ const loadCustomerDashboardRoute = () =>
     (module) => module.CustomerDashboardRoute,
   )
 
+const loadOrdersDashboardRoute = () =>
+  import('../features/private/admin/dashboard/orders/views/orders-dashboard.view').then(
+    (module) => module.OrdersDashboardView,
+  )
+
 const UserSubscriptionsRoute = lazy(() =>
   import('../features/private/user/subscriptions/routes/subscriptions.route').then(
     (module) => ({ default: module.SubscriptionsRoute }),
   ),
 )
 
-function AdminRouteLoader({ title, subtitle, columns, toolbar = false, loadRoute }: {
+function AdminRouteLoader({ title, subtitle, columns, toolbar = false, showTableSkeleton = true, loadRoute }: {
   title: string
   subtitle: string
   columns: number
   toolbar?: boolean
+  showTableSkeleton?: boolean
   loadRoute: () => Promise<ComponentType>
 }) {
   const logout = useLogout()
@@ -93,9 +99,9 @@ function AdminRouteLoader({ title, subtitle, columns, toolbar = false, loadRoute
             Tentar novamente
           </Button>
         </Stack>
-      ) : (
+      ) : showTableSkeleton ? (
         <AdminTableSkeleton columns={columns} toolbar={toolbar} />
-      )}
+      ) : null}
     </LayoutAdmin>
   )
 }
@@ -161,6 +167,19 @@ const adminRoutes: RouteObject[] = [
         columns={8}
         toolbar
         loadRoute={loadAdminOrdersRoute}
+      />
+    ),
+  },
+  {
+    path: '/admin/dashboard/pedidos',
+    element: (
+      <AdminRouteLoader
+        key="admin-orders-dashboard"
+        title="Dashboard de pedidos"
+        subtitle="Acompanhe vendas, pagamentos e a distribuição dos pedidos por status."
+        columns={4}
+        showTableSkeleton={false}
+        loadRoute={loadOrdersDashboardRoute}
       />
     ),
   },
