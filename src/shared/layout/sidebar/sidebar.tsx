@@ -345,6 +345,27 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
                 sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
               />
             </ListItemButton>
+            <ListItemButton
+              component={RouterLink}
+              to="/admin/dashboard/assinaturas"
+              selected={pathname === "/admin/dashboard/assinaturas"}
+              aria-label="Dashboard de assinaturas"
+              sx={{
+                minHeight: 48, mt: 0.5, borderRadius: 2,
+                px: showLabels ? 2 : 1.5, color: "#66766b",
+                "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+                "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+                "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
+                <SvgIcon><path d="M4 4h16v16H4zm2 2v12h12V6zm2 7h2v3H8zm3-4h2v7h-2zm3 2h2v5h-2z" /></SvgIcon>
+              </ListItemIcon>
+              <ListItemText
+                primary="Assinaturas"
+                sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
+              />
+            </ListItemButton>
           </Collapse>
         {showLabels && (
             <ListItemButton

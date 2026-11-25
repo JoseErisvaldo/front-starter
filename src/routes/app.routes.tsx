@@ -42,6 +42,11 @@ const loadOrdersDashboardRoute = () =>
     (module) => module.OrdersDashboardView,
   )
 
+const loadSubscriptionsDashboardRoute = () =>
+  import('../features/private/admin/dashboard/subscriptions/views/subscriptions-dashboard.view').then(
+    (module) => module.SubscriptionsDashboardView,
+  )
+
 const UserSubscriptionsRoute = lazy(() =>
   import('../features/private/user/subscriptions/routes/subscriptions.route').then(
     (module) => ({ default: module.SubscriptionsRoute }),
@@ -192,6 +197,19 @@ const adminRoutes: RouteObject[] = [
         subtitle="Acompanhe o crescimento da base de clientes e a situação das assinaturas."
         columns={4}
         loadRoute={loadCustomerDashboardRoute}
+      />
+    ),
+  },
+  {
+    path: '/admin/dashboard/assinaturas',
+    element: (
+      <AdminRouteLoader
+        key="admin-subscriptions-dashboard"
+        title="Dashboard de assinaturas"
+        subtitle="Acompanhe assinaturas, cobranças pagas e a evolução dos planos."
+        columns={4}
+        showTableSkeleton={false}
+        loadRoute={loadSubscriptionsDashboardRoute}
       />
     ),
   },
