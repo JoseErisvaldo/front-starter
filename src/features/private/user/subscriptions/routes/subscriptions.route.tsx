@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentProps } from 'react'
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Skeleton, Stack, SvgIcon, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Skeleton, Stack, SvgIcon, Typography } from '@mui/material'
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useLocation, useSearchParams } from 'react-router-dom'
@@ -117,6 +117,7 @@ export function SubscriptionsRoute() {
   const isMySubscriptionsPage = useLocation().pathname === '/minhas-assinaturas'
   const [searchParams] = useSearchParams()
   const [detailsSubscriptionId, setDetailsSubscriptionId] = useState<string | null>(null)
+  const [cancelConfirmationSubscriptionId, setCancelConfirmationSubscriptionId] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PublicSubscriptionPlan | null>(null)
   const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(null)
   const [checkoutError, setCheckoutError] = useState('')
@@ -168,6 +169,7 @@ export function SubscriptionsRoute() {
 
   const monitoredSubscription = subscriptions.data?.find(({ id }) => id === monitorSubscriptionId)
   const detailsSubscription = subscriptions.data?.find(({ id }) => id === detailsSubscriptionId)
+  const cancelConfirmationSubscription = subscriptions.data?.find(({ id }) => id === cancelConfirmationSubscriptionId)
   useEffect(() => {
     if (!monitoredSubscription || checkoutState !== 'pending') return
     const status = monitoredSubscription.status.toLowerCase()
@@ -522,9 +524,12 @@ export function SubscriptionsRoute() {
                         color="error"
                         variant="outlined"
                         disabled={cancelSubscription.isPending}
-                        onClick={() => cancelSubscription.mutate(detailsSubscription.id)}
+                        onClick={() => {
+                          cancelSubscription.reset()
+                          setCancelConfirmationSubscriptionId(detailsSubscription.id)
+                        }}
                       >
-                        {cancelSubscription.isPending ? 'Cancelando assinatura…' : 'Cancelar assinatura'}
+                        Cancelar assinatura
                       </Button>
                     )}
                   </Stack>
@@ -532,6 +537,49 @@ export function SubscriptionsRoute() {
               </Box>
             )}
           </Drawer>
+          <Dialog
+            open={Boolean(cancelConfirmationSubscriptionId)}
+            onClose={() => {
+              if (!cancelSubscription.isPending) setCancelConfirmationSubscriptionId(null)
+            }}
+            aria-labelledby="cancel-subscription-title"
+            aria-describedby="cancel-subscription-description"
+          >
+            <DialogTitle id="cancel-subscription-title">Confirmar cancelamento</DialogTitle>
+            <DialogContent>
+              <Typography id="cancel-subscription-description">
+                {cancelConfirmationSubscription
+                  ? `Deseja realmente cancelar a assinatura do plano "${cancelConfirmationSubscription.plan.name}"?`
+                  : 'Deseja realmente cancelar esta assinatura?'}
+              </Typography>
+              {cancelSubscription.isError && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {getApiErrorMessage(cancelSubscription.error)}
+                </Alert>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => setCancelConfirmationSubscriptionId(null)}
+                disabled={cancelSubscription.isPending}
+              >
+                Não, manter assinatura
+              </Button>
+              <Button
+                color="error"
+                variant="contained"
+                disabled={cancelSubscription.isPending || !cancelConfirmationSubscriptionId}
+                onClick={() => {
+                  if (!cancelConfirmationSubscriptionId) return
+                  cancelSubscription.mutate(cancelConfirmationSubscriptionId, {
+                    onSuccess: () => setCancelConfirmationSubscriptionId(null),
+                  })
+                }}
+              >
+                {cancelSubscription.isPending ? 'Cancelando…' : 'Sim, cancelar'}
+              </Button>
+            </DialogActions>
+          </Dialog>
           </>}
         </Stack>
       </Box>
