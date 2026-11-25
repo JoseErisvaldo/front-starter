@@ -27,6 +27,16 @@ const loadAdminSubscriptionsRoute = () =>
     (module) => module.AdminSubscriptionsRoute,
   )
 
+const loadAdminCustomersRoute = () =>
+  import('../features/private/admin/customers/routes/admin-customers.route').then(
+    (module) => module.AdminCustomersRoute,
+  )
+
+const loadCustomerDashboardRoute = () =>
+  import('../features/private/admin/customers/routes/customer-dashboard.route').then(
+    (module) => module.CustomerDashboardRoute,
+  )
+
 const UserSubscriptionsRoute = lazy(() =>
   import('../features/private/user/subscriptions/routes/subscriptions.route').then(
     (module) => ({ default: module.SubscriptionsRoute }),
@@ -151,6 +161,31 @@ const adminRoutes: RouteObject[] = [
         columns={8}
         toolbar
         loadRoute={loadAdminOrdersRoute}
+      />
+    ),
+  },
+  {
+    path: '/admin/clientes/dashboard',
+    element: (
+      <AdminRouteLoader
+        key="admin-customer-dashboard"
+        title="Dashboard de clientes"
+        subtitle="Acompanhe o crescimento da base de clientes e a situação das assinaturas."
+        columns={4}
+        loadRoute={loadCustomerDashboardRoute}
+      />
+    ),
+  },
+  {
+    path: '/admin/clientes',
+    element: (
+      <AdminRouteLoader
+        key="admin-customers"
+        title="Clientes"
+        subtitle="Consulte os clientes cadastrados e acompanhe a situação das assinaturas."
+        columns={5}
+        toolbar
+        loadRoute={loadAdminCustomersRoute}
       />
     ),
   },
