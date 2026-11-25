@@ -120,7 +120,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
   const isUser = role === "USER";
   const openGroups = useSidebarStore((state) => state.openGroups);
   const toggleGroup = useSidebarStore((state) => state.toggleGroup);
-  const isGroupOpen = (groupId: string) => openGroups[groupId] ?? true;
+  const isGroupOpen = (groupId: string) => openGroups[groupId] ?? false;
   const userGroups = isUser
     ? [
         {
@@ -164,14 +164,16 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
         flexShrink: 0,
         "& .MuiDrawer-paper": {
           width: isMobile || expanded ? SIDEBAR_WIDTH.expanded : SIDEBAR_WIDTH.collapsed,
+          height: "100dvh",
           boxSizing: "border-box",
-          px: showLabels ? 2.5 : 1.5,
+          overflow: "hidden",
+          px: showLabels ? 1 : 0.5,
           bgcolor: "#fff",
           borderRight: "1px solid #e3e9e4",
         },
       }}
     >
-      <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <Box sx={{ height: "100%", minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <Box
           sx={{
             display: "flex",
@@ -179,8 +181,8 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             alignItems: "center",
             justifyContent: showLabels ? "space-between" : "center",
             gap: showLabels ? 1 : 1.5,
-            px: 0.25,
-            py: 3,
+            px: 0,
+            py: 1,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
@@ -207,10 +209,32 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             </SvgIcon>
           </IconButton>
         </Box>
-
+        <Box
+          component="nav"
+          aria-label="Menu lateral"
+          sx={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            overflowX: "hidden",
+            overscrollBehavior: "contain",
+            scrollbarWidth: "none",
+            "&::-webkit-scrollbar": { display: "none" },
+            ...(!showLabels && {
+              "& .MuiListItemButton-root": {
+                justifyContent: "center",
+                px: 0,
+              },
+              "& .MuiListItemIcon-root": {
+                justifyContent: "center",
+                m: 0,
+              },
+            }),
+          }}
+        >
         <Typography
           variant="overline"
-          sx={{ px: 1, mt: 2, mb: 1, color: "#89988d", fontSize: 10, fontWeight: 700, letterSpacing: ".12em", display: showLabels ? "block" : "none" }}
+          sx={{ px: 0.75, mt: 1, mb: 0.5, color: "#89988d", fontSize: 10, fontWeight: 700, letterSpacing: ".12em", display: showLabels ? "block" : "none" }}
         >
           {isUser ? "MINHA CONTA" : "ESPAÇO DE TRABALHO"}
         </Typography>
@@ -222,7 +246,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
                   aria-expanded={isGroupOpen(group.id)}
                   aria-controls={`sidebar-group-${group.id}`}
                   onClick={() => toggleGroup(group.id)}
-                  sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+                  sx={{ minHeight: 36, mt: 0.75, px: 0.75, color: "#89988d" }}
                 >
                   <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
                     {group.label}
@@ -248,7 +272,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
                       aria-label={label}
                       sx={{
                         minHeight: 48, mt: 0.5, borderRadius: 2,
-                        px: showLabels ? 2 : 1.5, color: "#66766b",
+                        px: showLabels ? 1.5 : 1, color: "#66766b",
                         "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
                         "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
                         "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
@@ -271,7 +295,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             sx={{
               minHeight: 48,
               borderRadius: 2,
-              px: showLabels ? 2 : 1.5,
+              px: showLabels ? 1.5 : 1,
               color: "#66766b",
               "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
               "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -292,7 +316,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             <ListItemButton
               aria-expanded={isGroupOpen("dashboard")}
               onClick={() => toggleGroup("dashboard")}
-              sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+              sx={{ minHeight: 36, mt: 0.75, px: 0.75, color: "#89988d" }}
             >
               <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
                 DASHBOARD
@@ -310,7 +334,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
               aria-label="Dashboard de pedidos"
               sx={{
                 minHeight: 48, mt: 0.5, borderRadius: 2,
-                px: showLabels ? 2 : 1.5, color: "#66766b",
+                px: showLabels ? 1.5 : 1, color: "#66766b",
                 "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
                 "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
                 "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
@@ -331,7 +355,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
               aria-label="Dashboard de clientes"
               sx={{
                 minHeight: 48, mt: 0.5, borderRadius: 2,
-                px: showLabels ? 2 : 1.5, color: "#66766b",
+                px: showLabels ? 1.5 : 1, color: "#66766b",
                 "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
                 "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
                 "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
@@ -352,7 +376,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
               aria-label="Dashboard de assinaturas"
               sx={{
                 minHeight: 48, mt: 0.5, borderRadius: 2,
-                px: showLabels ? 2 : 1.5, color: "#66766b",
+                px: showLabels ? 1.5 : 1, color: "#66766b",
                 "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
                 "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
                 "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
@@ -371,7 +395,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             <ListItemButton
               aria-expanded={isGroupOpen("sales")}
               onClick={() => toggleGroup("sales")}
-              sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+              sx={{ minHeight: 36, mt: 0.75, px: 0.75, color: "#89988d" }}
             >
               <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
                 VENDAS
@@ -392,7 +416,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: showLabels ? 2 : 1.5,
+            px: showLabels ? 1.5 : 1,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -418,7 +442,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: showLabels ? 2 : 1.5,
+            px: showLabels ? 1.5 : 1,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -441,7 +465,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           <ListItemButton
             aria-expanded={isGroupOpen("customers")}
             onClick={() => toggleGroup("customers")}
-            sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+            sx={{ minHeight: 36, mt: 0.75, px: 0.75, color: "#89988d" }}
           >
             <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
               CLIENTES
@@ -461,7 +485,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
               minHeight: 48,
               mt: 0.5,
               borderRadius: 2,
-              px: showLabels ? 2 : 1.5,
+              px: showLabels ? 1.5 : 1,
               color: "#66766b",
               "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
               "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -483,7 +507,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           <ListItemButton
             aria-expanded={isGroupOpen("subscriptions")}
             onClick={() => toggleGroup("subscriptions")}
-            sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+            sx={{ minHeight: 36, mt: 0.75, px: 0.75, color: "#89988d" }}
           >
             <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
               RECORRÊNCIA
@@ -504,7 +528,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           minHeight: 48,
           mt: 0.5,
           borderRadius: 2,
-          px: showLabels ? 2 : 1.5,
+          px: showLabels ? 1.5 : 1,
           color: "#66766b",
           "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
           "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -525,7 +549,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: showLabels ? 2 : 1.5,
+            px: showLabels ? 1.5 : 1,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -548,7 +572,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           <ListItemButton
             aria-expanded={isGroupOpen("account")}
             onClick={() => toggleGroup("account")}
-            sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+            sx={{ minHeight: 36, mt: 0.75, px: 0.75, color: "#89988d" }}
           >
             <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
               CONTA
@@ -569,7 +593,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             minHeight: 48,
             mt: 0.5,
             borderRadius: 2,
-            px: showLabels ? 2 : 1.5,
+            px: showLabels ? 1.5 : 1,
             color: "#66766b",
             "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
             "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
@@ -590,9 +614,8 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
         </Collapse>
           </>}
         </List>
-
-        <Box sx={{ flex: 1 }} />
-        <Box sx={{ borderTop: "1px solid #e3e9e4", py: 1.5 }}>
+        </Box>
+        <Box sx={{ flexShrink: 0, borderTop: "1px solid #e3e9e4", py: 0.75, bgcolor: "#fff" }}>
           <Button
             fullWidth
             onClick={onLogout}
@@ -605,7 +628,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             sx={{
               justifyContent: showLabels ? "flex-start" : "center",
               minHeight: 46,
-              px: showLabels ? 2 : 1,
+              px: showLabels ? 1.5 : 1,
               color: "#66766b",
               "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
               "& .MuiButton-startIcon": { mr: showLabels ? 1.5 : 0 },

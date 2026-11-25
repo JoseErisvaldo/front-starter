@@ -19,7 +19,7 @@ export const useSidebarStore = create<SidebarState>()(
       toggleGroup: (groupId) => set((state) => ({
         openGroups: {
           ...state.openGroups,
-          [groupId]: !(state.openGroups[groupId] ?? true),
+          [groupId]: !(state.openGroups[groupId] ?? false),
         },
       })),
     }),
