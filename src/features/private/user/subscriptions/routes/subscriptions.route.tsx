@@ -1,5 +1,5 @@
-import { useState, type ComponentProps } from 'react'
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, Grid, Paper, Stack, Typography } from '@mui/material'
+import { useEffect, useState, type ComponentProps } from 'react'
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Drawer, Grid, IconButton, Paper, Stack, SvgIcon, Typography } from '@mui/material'
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -36,6 +36,59 @@ const queryKeys = {
   mine: ['my-subscriptions'] as const,
 }
 type CardPaymentSubmit = NonNullable<ComponentProps<typeof CardPayment>['onSubmit']>
+type CheckoutState = 'success' | 'error' | 'pending'
+
+function CheckoutFeedback({
+  state,
+  message,
+  onRetry,
+  onClose,
+}: {
+  state: CheckoutState
+  message: string
+  onRetry?: () => void
+  onClose?: () => void
+}) {
+  const isPending = state === 'pending'
+  const isSuccess = state === 'success'
+
+  return (
+    <Stack
+      role="status"
+      aria-live="polite"
+      spacing={2.5}
+      sx={{ flex: 1, minHeight: 320, p: 3, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}
+    >
+      {isPending ? (
+        <CircularProgress size={48} />
+      ) : (
+        <Box
+          sx={{
+            width: 112,
+            height: 112,
+            display: 'grid',
+            placeItems: 'center',
+            borderRadius: '50%',
+            bgcolor: isSuccess ? 'success.main' : 'error.main',
+            color: 'common.white',
+            boxShadow: (theme) => `0 0 0 10px ${isSuccess ? theme.palette.success.light : theme.palette.error.light}`,
+          }}
+        >
+          <SvgIcon sx={{ fontSize: 72 }} viewBox="0 0 24 24">
+            {isSuccess
+              ? <path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+              : <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />}
+          </SvgIcon>
+        </Box>
+      )}
+      <Typography variant="h6" component="p" sx={{ fontWeight: 700 }}>
+        {message}
+      </Typography>
+      {onRetry && <Button variant="contained" onClick={onRetry}>Tentar novamente</Button>}
+      {onClose && <Button variant={isSuccess ? 'contained' : 'text'} onClick={onClose}>Fechar</Button>}
+    </Stack>
+  )
+}
 
 export function SubscriptionsRoute() {
   const client = useQueryClient()
@@ -43,24 +96,42 @@ export function SubscriptionsRoute() {
   const userQuery = useMeQuery()
   const [searchParams] = useSearchParams()
   const [selectedPlan, setSelectedPlan] = useState<PublicSubscriptionPlan | null>(null)
-  const [formError, setFormError] = useState('')
+  const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(null)
+  const [checkoutError, setCheckoutError] = useState('')
+  const [checkoutRetry, setCheckoutRetry] = useState(0)
+  const [monitorSubscriptionId, setMonitorSubscriptionId] = useState<string | null>(null)
+  const [nextPaymentDate, setNextPaymentDate] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState(
     searchParams.get('retorno') === 'mercadopago'
       ? 'Retorno do Mercado Pago recebido. O status da assinatura será atualizado após a confirmação.'
       : '',
   )
   const plans = useQuery({ queryKey: queryKeys.plans, queryFn: getSubscriptionPlansService })
-  const subscriptions = useQuery({ queryKey: queryKeys.mine, queryFn: getMySubscriptionsService })
+  const subscriptions = useQuery({
+    queryKey: queryKeys.mine,
+    queryFn: getMySubscriptionsService,
+    refetchInterval: checkoutState === 'pending' ? 2500 : false,
+  })
   const createSubscription = useMutation({
     mutationFn: createSubscriptionService,
     onSuccess: async (subscription) => {
       await client.invalidateQueries({ queryKey: queryKeys.mine })
+      setMonitorSubscriptionId(subscription.id)
+      setNextPaymentDate(subscription.nextPaymentDate)
       if (subscription.status.toLowerCase() === 'pending' && subscription.initPoint) {
         window.location.assign(subscription.initPoint)
         return
       }
-      setSuccessMessage('Solicitação enviada ao Mercado Pago. O status será atualizado assim que recebermos a confirmação.')
-      setSelectedPlan(null)
+      if (['authorized', 'active'].includes(subscription.status.toLowerCase())) {
+        setCheckoutState('success')
+        return
+      }
+      if (subscription.status.toLowerCase() === 'pending') {
+        setCheckoutState('pending')
+        return
+      }
+      setCheckoutError(`O Mercado Pago retornou o status "${subscription.status}".`)
+      setCheckoutState('error')
     },
   })
   const cancelSubscription = useMutation({
@@ -68,15 +139,46 @@ export function SubscriptionsRoute() {
     onSuccess: () => void client.invalidateQueries({ queryKey: queryKeys.mine }),
   })
 
+  const monitoredSubscription = subscriptions.data?.find(({ id }) => id === monitorSubscriptionId)
+  useEffect(() => {
+    if (!monitoredSubscription || checkoutState !== 'pending') return
+    const status = monitoredSubscription.status.toLowerCase()
+    if (['authorized', 'active'].includes(status)) {
+      setNextPaymentDate(monitoredSubscription.nextPaymentDate)
+      setCheckoutState('success')
+    } else if (['error', 'rejected', 'canceled', 'cancelled'].includes(status)) {
+      setCheckoutError('O Mercado Pago não autorizou a assinatura.')
+      setCheckoutState('error')
+    }
+  }, [checkoutState, monitoredSubscription])
+
   const submitCard: CardPaymentSubmit = async (formData) => {
     if (!selectedPlan) throw new Error('Selecione uma opção de plano')
-    setFormError('')
+    setCheckoutError('')
     try {
       await createSubscription.mutateAsync({ planId: selectedPlan.id, cardToken: formData.token })
     } catch (error) {
-      setFormError(getApiErrorMessage(error))
+      setCheckoutError(getApiErrorMessage(error))
+      setCheckoutState('error')
       throw error
     }
+  }
+
+  function closeCheckout() {
+    if (createSubscription.isPending) return
+    setSelectedPlan(null)
+    setCheckoutState(null)
+    setCheckoutError('')
+    setMonitorSubscriptionId(null)
+    setNextPaymentDate(null)
+  }
+
+  function retryCheckout() {
+    createSubscription.reset()
+    setCheckoutState(null)
+    setCheckoutError('')
+    setMonitorSubscriptionId(null)
+    setCheckoutRetry((attempt) => attempt + 1)
   }
 
   return (
@@ -94,7 +196,6 @@ export function SubscriptionsRoute() {
           {successMessage && <Alert severity="success">{successMessage}</Alert>}
           {cancelSubscription.isError && <Alert severity="error">{getApiErrorMessage(cancelSubscription.error)}</Alert>}
           {!publicKey && <Alert severity="error">Configure VITE_MP_PUBLIC_KEY no frontend para habilitar a tokenização segura do cartão.</Alert>}
-          {formError && <Alert severity="error">{formError}</Alert>}
 
           <Grid container spacing={2}>
             {plans.data?.map((plan) => (
@@ -106,11 +207,15 @@ export function SubscriptionsRoute() {
                       <Typography variant="h4" sx={{ fontWeight: 700 }}>{formatCurrency(plan.amount, plan.currency)}</Typography>
                       <Typography color="text.secondary">por cobrança {recurrenceNames[plan.recurrence].toLowerCase()}</Typography>
                       <Button variant={selectedPlan?.id === plan.id ? 'contained' : 'outlined'} disabled={!publicKey} onClick={() => {
-                        setFormError('')
                         setSuccessMessage('')
+                        setCheckoutState(null)
+                        setCheckoutError('')
+                        setMonitorSubscriptionId(null)
+                        setNextPaymentDate(null)
+                        createSubscription.reset()
                         setSelectedPlan(plan)
                       }}>
-                        {selectedPlan?.id === plan.id ? 'Opção selecionada' : 'Assinar'}
+                        Assinar
                       </Button>
                     </Stack>
                   </CardContent>
@@ -120,31 +225,104 @@ export function SubscriptionsRoute() {
           </Grid>
           {plans.data?.length === 0 && !plans.isLoading && <Alert severity="info">Ainda não há planos disponíveis.</Alert>}
 
-          {selectedPlan && userQuery.data && publicKey && (
-            <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
-              <Stack spacing={2}>
-                <Typography variant="h6">Autorizar cobrança recorrente</Typography>
-                <Typography color="text.secondary">
-                  {selectedPlan.name} · {recurrenceNames[selectedPlan.recurrence]} · {formatCurrency(selectedPlan.amount, selectedPlan.currency)} por cobrança
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  O Mercado Pago validará o cartão. Não armazenamos os dados do cartão.
-                </Typography>
-                <Box sx={{ position: 'relative', pointerEvents: createSubscription.isPending ? 'none' : 'auto', opacity: createSubscription.isPending ? 0.6 : 1 }}>
-                  <CardPayment
-                    initialization={{ amount: selectedPlan.amount, payer: { email: userQuery.data.email } }}
-                    onSubmit={submitCard}
-                    onError={(error) => {
-                      logError('mercadoPagoSubscriptionCardBrick', error)
-                      setFormError('Não foi possível carregar o formulário do Mercado Pago. Tente novamente.')
-                    }}
-                    locale="pt-BR"
-                  />
-                </Box>
-                {createSubscription.isPending && <CircularProgress size={24} aria-label="Criando assinatura" />}
-              </Stack>
-            </Paper>
-          )}
+          <Drawer
+            anchor="right"
+            open={Boolean(selectedPlan)}
+            onClose={closeCheckout}
+            slotProps={{
+              paper: {
+                sx: {
+                  width: { xs: '100%', sm: 560 },
+                  maxWidth: '100vw',
+                  display: 'flex',
+                  flexDirection: 'column',
+                },
+              },
+            }}
+          >
+            {selectedPlan && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <DialogTitle sx={{ pr: 7, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography component="span" variant="h6">Assinar plano</Typography>
+                  <IconButton
+                    aria-label="Fechar checkout"
+                    onClick={closeCheckout}
+                    disabled={createSubscription.isPending}
+                    sx={{ position: 'absolute', right: 12, top: 12 }}
+                  >
+                    <span aria-hidden="true">×</span>
+                  </IconButton>
+                </DialogTitle>
+                <DialogContent
+                  dividers
+                  sx={{
+                    flex: 1,
+                    minHeight: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    p: createSubscription.isPending || checkoutState ? 0 : { xs: 2, sm: 3 },
+                  }}
+                >
+                  {createSubscription.isPending ? (
+                    <CheckoutFeedback state="pending" message="Processando sua assinatura…" />
+                  ) : checkoutState ? (
+                    <CheckoutFeedback
+                      state={checkoutState}
+                      message={
+                        checkoutState === 'success'
+                          ? `Assinatura autorizada com sucesso.${nextPaymentDate ? ` Próxima cobrança: ${formatBrazilianDate(nextPaymentDate)}.` : ''}`
+                          : checkoutState === 'error'
+                            ? checkoutError || 'Não foi possível concluir a assinatura.'
+                            : 'Aguardando confirmação do Mercado Pago…'
+                      }
+                      onRetry={checkoutState === 'error' ? retryCheckout : undefined}
+                      onClose={closeCheckout}
+                    />
+                  ) : (
+                    <Stack spacing={3}>
+                      <Paper variant="outlined" sx={{ p: 2 }}>
+                        <Stack spacing={1}>
+                          <Typography variant="overline" color="text.secondary" sx={{ fontWeight: 700 }}>
+                            Resumo da assinatura
+                          </Typography>
+                          <Typography variant="h6">{selectedPlan.name}</Typography>
+                          <Typography color="text.secondary">
+                            Cobrança {recurrenceNames[selectedPlan.recurrence].toLowerCase()}
+                          </Typography>
+                          <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700 }}>
+                            {formatCurrency(selectedPlan.amount, selectedPlan.currency)}
+                          </Typography>
+                        </Stack>
+                      </Paper>
+                      {!publicKey && <Alert severity="error">Configure a Public Key do Mercado Pago para habilitar o pagamento.</Alert>}
+                      {!userQuery.data && userQuery.isLoading && <CircularProgress size={24} aria-label="Carregando dados da conta" />}
+                      {userQuery.isError && <Alert severity="error">{getApiErrorMessage(userQuery.error)}</Alert>}
+                      {userQuery.data && publicKey && (
+                        <>
+                          <Typography variant="body2" color="text.secondary">
+                            O cartão é tokenizado pelo Mercado Pago. Os dados do cartão não são armazenados pela aplicação.
+                          </Typography>
+                          <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, borderColor: 'divider' }}>
+                            <CardPayment
+                              key={checkoutRetry}
+                              initialization={{ amount: selectedPlan.amount, payer: { email: userQuery.data.email } }}
+                              onSubmit={submitCard}
+                              onError={(error) => {
+                                logError('mercadoPagoSubscriptionCardBrick', error)
+                                setCheckoutError((current) => current || 'Não foi possível carregar ou processar o cartão. Tente novamente.')
+                                setCheckoutState((current) => current === 'error' ? current : 'error')
+                              }}
+                              locale="pt-BR"
+                            />
+                          </Paper>
+                        </>
+                      )}
+                    </Stack>
+                  )}
+                </DialogContent>
+              </Box>
+            )}
+          </Drawer>
 
           <Stack spacing={2}>
             <Typography variant="h5" component="h2">Minhas assinaturas</Typography>
