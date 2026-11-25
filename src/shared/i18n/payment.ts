@@ -2,6 +2,7 @@ const paymentStatusLabels: Record<string, string> = {
   action_required: 'Aguardando pagamento',
   accredited: 'Pago',
   approved: 'Pago',
+  authorized: 'Autorizado',
   cancelled: 'Cancelado',
   canceled: 'Cancelado',
   created: 'Criado',
@@ -9,6 +10,8 @@ const paymentStatusLabels: Record<string, string> = {
   error: 'Erro',
   expired: 'Expirado',
   failed: 'Falhou',
+  in_mediation: 'Em mediação',
+  in_process: 'Em processamento',
   pending: 'Pendente',
   processed: 'Pago',
   processing: 'Em processamento',
@@ -21,6 +24,11 @@ const paymentStatusLabels: Record<string, string> = {
 const paymentStatusDetailLabels: Record<string, string> = {
   accredited: 'Pagamento aprovado',
   action_required: 'Ação necessária',
+  cc_rejected_insufficient_amount: 'Saldo insuficiente',
+  pending_contingency: 'Aguardando análise',
+  pending_review_manual: 'Em análise manual',
+  pending_waiting_payment: 'Aguardando pagamento',
+  pending_waiting_transfer: 'Aguardando transferência',
   processing_error: 'Erro no processamento',
   waiting_transfer: 'Aguardando transferência',
 }

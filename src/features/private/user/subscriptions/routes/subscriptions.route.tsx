@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentProps } from 'react'
-import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Drawer, Grid, IconButton, Paper, Stack, SvgIcon, Typography } from '@mui/material'
+import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Stack, SvgIcon, Typography } from '@mui/material'
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
@@ -8,6 +8,7 @@ import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { LayoutUser } from '../../../../../shared/layout/layout-user'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
+import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { logError } from '../../../../../shared/lib/log-error'
 import {
@@ -23,6 +24,7 @@ const publicKey =
 if (publicKey) initMercadoPago(publicKey, { locale: 'pt-BR' })
 
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
+const tierNames = { BASIC: 'Básico', SIMPLE: 'Simples', PRO: 'Pro' } as const
 const subscriptionStatusNames: Record<string, string> = {
   authorized: 'Ativa',
   pending: 'Pendente',
@@ -34,6 +36,15 @@ const subscriptionStatusNames: Record<string, string> = {
 const queryKeys = {
   plans: ['subscription-plans'] as const,
   mine: ['my-subscriptions'] as const,
+}
+const subscriptionStatusColors: Record<string, 'default' | 'success' | 'warning' | 'error'> = {
+  authorized: 'success',
+  active: 'success',
+  pending: 'warning',
+  paused: 'warning',
+  canceled: 'default',
+  cancelled: 'default',
+  error: 'error',
 }
 type CardPaymentSubmit = NonNullable<ComponentProps<typeof CardPayment>['onSubmit']>
 type CheckoutState = 'success' | 'error' | 'pending'
@@ -90,11 +101,21 @@ function CheckoutFeedback({
   )
 }
 
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Typography variant="body2" color="text.secondary">{label}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 600, textAlign: 'right', overflowWrap: 'anywhere' }}>{value}</Typography>
+    </Stack>
+  )
+}
+
 export function SubscriptionsRoute() {
   const client = useQueryClient()
   const logout = useLogout()
   const userQuery = useMeQuery()
   const [searchParams] = useSearchParams()
+  const [detailsSubscriptionId, setDetailsSubscriptionId] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PublicSubscriptionPlan | null>(null)
   const [checkoutState, setCheckoutState] = useState<CheckoutState | null>(null)
   const [checkoutError, setCheckoutError] = useState('')
@@ -140,6 +161,7 @@ export function SubscriptionsRoute() {
   })
 
   const monitoredSubscription = subscriptions.data?.find(({ id }) => id === monitorSubscriptionId)
+  const detailsSubscription = subscriptions.data?.find(({ id }) => id === detailsSubscriptionId)
   useEffect(() => {
     if (!monitoredSubscription || checkoutState !== 'pending') return
     const status = monitoredSubscription.status.toLowerCase()
@@ -339,23 +361,28 @@ export function SubscriptionsRoute() {
                       </Typography>
                       {subscription.nextPaymentDate && <Typography variant="body2" color="text.secondary">Próxima cobrança: {formatBrazilianDate(subscription.nextPaymentDate)}</Typography>}
                     </Box>
-                    {!isCanceled && subscription.status !== 'error' && (
-                      <Button
-                        color="error"
-                        variant="outlined"
-                        disabled={cancelSubscription.isPending}
-                        onClick={() => cancelSubscription.mutate(subscription.id)}
-                      >
-                        Cancelar assinatura
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                      <Button variant="outlined" onClick={() => setDetailsSubscriptionId(subscription.id)}>
+                        Ver detalhes
                       </Button>
-                    )}
+                      {!isCanceled && subscription.status !== 'error' && (
+                        <Button
+                          color="error"
+                          variant="outlined"
+                          disabled={cancelSubscription.isPending}
+                          onClick={() => cancelSubscription.mutate(subscription.id)}
+                        >
+                          Cancelar assinatura
+                        </Button>
+                      )}
+                    </Stack>
                   </Stack>
                   {subscription.charges.length > 0 && (
                     <Stack spacing={1} sx={{ mt: 2 }}>
                       <Typography variant="subtitle2">Cobranças</Typography>
                       {subscription.charges.map((charge) => (
                         <Typography key={charge.id} variant="body2" color="text.secondary">
-                          {charge.paidAt ? formatBrazilianDate(charge.paidAt) : formatBrazilianDate(charge.createdAt)} · {charge.amount === null ? '—' : formatCurrency(charge.amount, charge.currency ?? subscription.plan.currency)} · {charge.status}
+                          {charge.paidAt ? formatBrazilianDate(charge.paidAt) : formatBrazilianDate(charge.createdAt)} · {charge.amount === null ? '—' : formatCurrency(charge.amount, charge.currency ?? subscription.plan.currency)} · {translatePaymentStatus(charge.status)}
                         </Typography>
                       ))}
                     </Stack>
@@ -365,6 +392,98 @@ export function SubscriptionsRoute() {
             })}
             {subscriptions.data?.length === 0 && !subscriptions.isLoading && <Alert severity="info">Você ainda não possui assinaturas.</Alert>}
           </Stack>
+
+          <Drawer
+            anchor="right"
+            open={Boolean(detailsSubscription)}
+            onClose={() => setDetailsSubscriptionId(null)}
+            slotProps={{
+              paper: {
+                sx: {
+                  width: { xs: '100%', sm: 560 },
+                  maxWidth: '100vw',
+                  display: 'flex',
+                  flexDirection: 'column',
+                },
+              },
+            }}
+          >
+            {detailsSubscription && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <DialogTitle sx={{ pr: 7, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography component="span" variant="h6">Detalhes da assinatura</Typography>
+                  <IconButton
+                    aria-label="Fechar detalhes"
+                    onClick={() => setDetailsSubscriptionId(null)}
+                    sx={{ position: 'absolute', right: 12, top: 12 }}
+                  >
+                    <span aria-hidden="true">×</span>
+                  </IconButton>
+                </DialogTitle>
+                <DialogContent dividers sx={{ flex: 1, minHeight: 0, p: { xs: 2, sm: 3 } }}>
+                  <Stack spacing={2.5}>
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Chip
+                        label={subscriptionStatusNames[detailsSubscription.status.toLowerCase()] ?? detailsSubscription.status}
+                        color={subscriptionStatusColors[detailsSubscription.status.toLowerCase()] ?? 'default'}
+                      />
+                      <Typography variant="h6">{detailsSubscription.plan.name}</Typography>
+                    </Stack>
+
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Stack spacing={1}>
+                        <Typography variant="subtitle2">Plano contratado</Typography>
+                        <DetailRow label="Nível" value={tierNames[detailsSubscription.plan.tier]} />
+                        <DetailRow label="Recorrência" value={recurrenceNames[detailsSubscription.plan.recurrence]} />
+                        <DetailRow label="Valor por cobrança" value={formatCurrency(detailsSubscription.plan.amount, detailsSubscription.plan.currency)} />
+                      </Stack>
+                    </Paper>
+
+                    <Paper variant="outlined" sx={{ p: 2 }}>
+                      <Stack spacing={1}>
+                        <Typography variant="subtitle2">Datas</Typography>
+                        <DetailRow label="Assinatura criada em" value={formatBrazilianDate(detailsSubscription.createdAt)} />
+                        <DetailRow label="Última atualização" value={formatBrazilianDate(detailsSubscription.updatedAt)} />
+                        <DetailRow
+                          label="Próxima cobrança"
+                          value={detailsSubscription.nextPaymentDate ? formatBrazilianDate(detailsSubscription.nextPaymentDate) : 'Ainda não agendada'}
+                        />
+                      </Stack>
+                    </Paper>
+
+                    <Divider />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Histórico de cobranças</Typography>
+                    {detailsSubscription.charges.length > 0 ? (
+                      <Stack spacing={1.5}>
+                        {detailsSubscription.charges.map((charge) => (
+                          <Paper key={charge.id} variant="outlined" sx={{ p: 2 }}>
+                            <Stack spacing={1}>
+                              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                                <Typography variant="subtitle2">
+                                  {charge.amount === null ? 'Valor indisponível' : formatCurrency(charge.amount, charge.currency ?? detailsSubscription.plan.currency)}
+                                </Typography>
+                                <Chip size="small" label={translatePaymentStatus(charge.status)} />
+                              </Stack>
+                              <DetailRow
+                                label={charge.paidAt ? 'Data do pagamento' : 'Data do registro'}
+                                value={formatBrazilianDate(charge.paidAt ?? charge.createdAt)}
+                              />
+                              {charge.statusDetail && (
+                                <DetailRow label="Detalhe do status" value={translatePaymentStatusDetail(charge.statusDetail) ?? 'Indisponível'} />
+                              )}
+                            </Stack>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    ) : (
+                      <Alert severity="info">Ainda não há cobranças registradas para esta assinatura.</Alert>
+                    )}
+                    <Alert severity="info">Por segurança, os dados do cartão não são armazenados nem exibidos nesta tela.</Alert>
+                  </Stack>
+                </DialogContent>
+              </Box>
+            )}
+          </Drawer>
         </Stack>
       </Box>
     </LayoutUser>
