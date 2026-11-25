@@ -1,5 +1,5 @@
-import { useEffect, useState, type ComponentType } from 'react'
-import { Alert, Button, Stack } from '@mui/material'
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
+import { Alert, Button, CircularProgress, Stack } from '@mui/material'
 import { Navigate, type RouteObject } from 'react-router-dom'
 import { AuthGuard } from '../features/private/guards/auth.guard'
 import { AdminRoute } from '../features/private/admin/routes/admin.route'
@@ -21,6 +21,17 @@ const loadAdminOrdersRoute = () =>
   import('../features/private/admin/orders/routes/admin-orders.route').then(
     (module) => module.AdminOrdersRoute,
   )
+
+const loadAdminSubscriptionsRoute = () =>
+  import('../features/private/admin/subscriptions/routes/admin-subscriptions.route').then(
+    (module) => module.AdminSubscriptionsRoute,
+  )
+
+const UserSubscriptionsRoute = lazy(() =>
+  import('../features/private/user/subscriptions/routes/subscriptions.route').then(
+    (module) => ({ default: module.SubscriptionsRoute }),
+  ),
+)
 
 function AdminRouteLoader({ title, subtitle, columns, toolbar = false, loadRoute }: {
   title: string
@@ -89,6 +100,14 @@ const publicRoutes: RouteObject[] = [
 const userPrivateRoutes: RouteObject[] = [
   { path: '/conta', element: <AccountRoute /> },
   { path: '/pedidos', element: <OrdersRoute /> },
+  {
+    path: '/assinaturas',
+    element: (
+      <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
+        <UserSubscriptionsRoute />
+      </Suspense>
+    ),
+  },
 ]
 
 const adminRoutes: RouteObject[] = [
@@ -116,6 +135,19 @@ const adminRoutes: RouteObject[] = [
         columns={8}
         toolbar
         loadRoute={loadAdminOrdersRoute}
+      />
+    ),
+  },
+  {
+    path: '/admin/assinaturas',
+    element: (
+      <AdminRouteLoader
+        key="admin-subscriptions"
+        title="Assinaturas"
+        subtitle="Gerencie os níveis, recorrências e assinaturas dos clientes."
+        columns={6}
+        toolbar
+        loadRoute={loadAdminSubscriptionsRoute}
       />
     ),
   },

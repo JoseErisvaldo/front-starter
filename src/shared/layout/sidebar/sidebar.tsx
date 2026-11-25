@@ -120,6 +120,7 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
     ? [
         { label: "Produtos", to: "/produtos", icon: <path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM9 4h6v2H9V4zm11 16H4V8h3v2h2V8h6v2h2V8h3v12z" /> },
         { label: "Meus pedidos", to: "/pedidos", icon: <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14ZM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" /> },
+        { label: "Assinaturas", to: "/assinaturas", icon: <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 16h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26A2 2 0 1 0 10 8H8a4 4 0 1 1 7.07 2.25z" /> },
         { label: "Minha conta", to: "/conta", icon: <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z" /> },
       ]
     : [];
@@ -286,6 +287,27 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
             primary="Pedidos"
             sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }}
           />
+        </ListItemButton>
+        <ListItemButton
+        component={RouterLink}
+        to="/admin/assinaturas"
+        selected={pathname === "/admin/assinaturas"}
+        aria-label="Assinaturas"
+        sx={{
+          minHeight: 48,
+          mt: 0.5,
+          borderRadius: 2,
+          px: showLabels ? 2 : 1.5,
+          color: "#66766b",
+          "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+          "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+          "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+        }}
+        >
+        <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}>
+          <SvgIcon><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 16h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26A2 2 0 1 0 10 8H8a4 4 0 1 1 7.07 2.25z" /></SvgIcon>
+        </ListItemIcon>
+        <ListItemText primary="Assinaturas" sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }} />
         </ListItemButton>
         <ListItemButton
           component={RouterLink}
