@@ -1,4 +1,4 @@
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material'
 import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
 import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
 import { formatBrazilianCurrency } from '../utils/subscription-dashboard-formatters'
@@ -10,11 +10,14 @@ function getDaysUntilCharge(date: string, startDate: string) {
   return `Em ${days} dias`
 }
 
-export function UpcomingSubscriptionChargesTable({ data, startDate }: {
+export function UpcomingSubscriptionChargesTable({ data, startDate, onPageChange, onPageSizeChange }: {
   data: SubscriptionsDashboard['forecast']['upcomingCharges']
   startDate: string
+  onPageChange: (page: number) => void
+  onPageSizeChange: (pageSize: number) => void
 }) {
-  if (data.length === 0) {
+  const { items, pagination } = data
+  if (pagination.total === 0) {
     return <Typography color="text.secondary">Nenhuma cobrança prevista nos próximos 30 dias.</Typography>
   }
 
@@ -32,7 +35,7 @@ export function UpcomingSubscriptionChargesTable({ data, startDate }: {
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.map((charge, index) => (
+            {items.map((charge, index) => (
               <TableRow key={`${charge.subscriptionId}-${charge.date}-${index}`} hover>
                 <TableCell>{formatBrazilianDayMonthLabel(charge.date)}</TableCell>
                 <TableCell>{getDaysUntilCharge(charge.date, startDate)}</TableCell>
@@ -47,11 +50,19 @@ export function UpcomingSubscriptionChargesTable({ data, startDate }: {
           </TableBody>
         </Table>
       </TableContainer>
-      {data.length === 100 && (
-        <Typography variant="caption" color="text.secondary">
-          Exibindo as 100 próximas cobranças previstas.
-        </Typography>
-      )}
+      <TablePagination
+        component="div"
+        count={pagination.total}
+        page={pagination.page - 1}
+        onPageChange={(_, nextPage) => onPageChange(nextPage + 1)}
+        rowsPerPage={pagination.pageSize}
+        onRowsPerPageChange={(event) => {
+          onPageSizeChange(Number(event.target.value))
+        }}
+        rowsPerPageOptions={[10, 25, 50]}
+        labelRowsPerPage="Linhas por página:"
+        labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+      />
     </>
   )
 }

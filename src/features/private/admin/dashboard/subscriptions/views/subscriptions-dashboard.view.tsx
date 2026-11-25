@@ -77,6 +77,8 @@ function ChartSkeleton({ height = 280 }: { height?: number }) {
 export function SubscriptionsDashboardView() {
   const logout = useLogout()
   const [activeTab, setActiveTab] = useState('overview')
+  const [upcomingPage, setUpcomingPage] = useState(1)
+  const [upcomingPageSize, setUpcomingPageSize] = useState(10)
   const [filters, setFilters] = useState<OrdersDashboardFilters>(() => ({
     preset: 'this_month',
     ...getOrdersDashboardDateRange('this_month', '', ''),
@@ -84,8 +86,12 @@ export function SubscriptionsDashboardView() {
   const query = getOrdersDashboardDateRange(filters.preset, filters.dateFrom, filters.dateTo)
   const previousQuery = getPreviousDateRange(query)
   const dashboard = useQuery({
-    queryKey: ['admin-subscriptions-dashboard', query],
-    queryFn: () => getSubscriptionsDashboardService(query),
+    queryKey: ['admin-subscriptions-dashboard', query, upcomingPage, upcomingPageSize],
+    queryFn: () => getSubscriptionsDashboardService({
+      ...query,
+      upcomingPage,
+      upcomingPageSize,
+    }),
   })
   const previousDashboard = useQuery({
     queryKey: ['admin-subscriptions-dashboard', previousQuery, 'comparison'],
@@ -169,6 +175,11 @@ export function SubscriptionsDashboardView() {
                 ? <UpcomingSubscriptionChargesTable
                     data={data.forecast.upcomingCharges}
                     startDate={data.forecast.startDate}
+                    onPageChange={setUpcomingPage}
+                    onPageSizeChange={(pageSize) => {
+                      setUpcomingPageSize(pageSize)
+                      setUpcomingPage(1)
+                    }}
                   />
                 : <ChartSkeleton height={240} />}
             </CardContent>

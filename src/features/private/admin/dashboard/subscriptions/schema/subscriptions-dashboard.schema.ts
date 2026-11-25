@@ -4,6 +4,8 @@ export const subscriptionsDashboardQuerySchema = z.object({
   dateFrom: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   dateTo: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   comparison: z.literal(true).optional(),
+  upcomingPage: z.number().int().min(1).default(1),
+  upcomingPageSize: z.number().int().min(1).max(50).default(10),
 })
 
 export const subscriptionsDashboardResponseSchema = z.object({
@@ -41,16 +43,24 @@ export const subscriptionsDashboardResponseSchema = z.object({
       expectedCharges: z.number().int(),
       expectedAmount: z.number(),
     })).length(30),
-    upcomingCharges: z.array(z.object({
-      date: z.string(),
-      subscriptionId: z.string().uuid(),
-      customerName: z.string(),
-      customerEmail: z.string().email(),
-      planName: z.string(),
-      amount: z.number(),
-    })).max(100),
+    upcomingCharges: z.object({
+      items: z.array(z.object({
+        date: z.string(),
+        subscriptionId: z.string().uuid(),
+        customerName: z.string(),
+        customerEmail: z.string().email(),
+        planName: z.string(),
+        amount: z.number(),
+      })),
+      pagination: z.object({
+        page: z.number().int(),
+        pageSize: z.number().int(),
+        total: z.number().int(),
+        pageCount: z.number().int(),
+      }),
+    }),
   }),
 })
 
-export type SubscriptionsDashboardQuery = z.infer<typeof subscriptionsDashboardQuerySchema>
+export type SubscriptionsDashboardQuery = z.input<typeof subscriptionsDashboardQuerySchema>
 export type SubscriptionsDashboard = z.infer<typeof subscriptionsDashboardResponseSchema>
