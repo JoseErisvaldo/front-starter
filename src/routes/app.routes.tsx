@@ -108,6 +108,22 @@ const userPrivateRoutes: RouteObject[] = [
       </Suspense>
     ),
   },
+  {
+    path: '/minhas-assinaturas',
+    element: (
+      <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
+        <UserSubscriptionsRoute />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/minhas-assinaturas',
+    element: (
+      <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
+        <UserSubscriptionsRoute />
+      </Suspense>
+    ),
+  },
 ]
 
 const adminRoutes: RouteObject[] = [

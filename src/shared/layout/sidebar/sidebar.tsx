@@ -121,12 +121,31 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
   const openGroups = useSidebarStore((state) => state.openGroups);
   const toggleGroup = useSidebarStore((state) => state.toggleGroup);
   const isGroupOpen = (groupId: string) => openGroups[groupId] ?? true;
-  const routes = isUser
+  const userGroups = isUser
     ? [
-        { label: "Produtos", to: "/produtos", icon: <path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM9 4h6v2H9V4zm11 16H4V8h3v2h2V8h6v2h2V8h3v12z" /> },
-        { label: "Meus pedidos", to: "/pedidos", icon: <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14ZM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" /> },
-        { label: "Assinaturas", to: "/assinaturas", icon: <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 16h-2v-2h2v2zm2.07-7.75-.9.92C13.45 11.9 13 12.5 13 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26A2 2 0 1 0 10 8H8a4 4 0 1 1 7.07 2.25z" /> },
-        { label: "Minha conta", to: "/conta", icon: <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z" /> },
+        {
+          id: "customer-store",
+          label: "LOJA",
+          routes: [
+            { label: "Produtos", to: "/produtos", icon: <path d="M20 6h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2ZM9 4h6v2H9V4zm11 16H4V8h3v2h2V8h6v2h2V8h3v12z" /> },
+            { label: "Meus pedidos", to: "/pedidos", icon: <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm0 16H5V5h14v14ZM7 7h10v2H7zm0 4h10v2H7zm0 4h6v2H7z" /> },
+          ],
+        },
+        {
+          id: "customer-recurring",
+          label: "RECORRÊNCIA",
+          routes: [
+            { label: "Planos de assinaturas", to: "/assinaturas", icon: <path d="M12 6V3L8 7l4 4V8c2.21 0 4 1.79 4 4 0 .73-.2 1.41-.54 2h2.31c.15-.63.23-1.3.23-2 0-3.31-2.69-6-6-6zm-4 6c0-.73.2-1.41.54-2H6.23C6.08 10.63 6 11.3 6 12c0 3.31 2.69 6 6 6v3l4-4-4-4v3c-2.21 0-4-1.79-4-4z" /> },
+            { label: "Minhas assinaturas", to: "/minhas-assinaturas", icon: <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3ZM8 11c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3Zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13Zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.98 1.97 3.45V19h7v-2.5c0-2.33-4.67-3.5-8-3.5Z" /> },
+          ],
+        },
+        {
+          id: "customer-account",
+          label: "CONTA",
+          routes: [
+            { label: "Minha conta", to: "/conta", icon: <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v3h16v-3c0-2.76-3.58-5-8-5z" /> },
+          ],
+        },
       ]
     : [];
 
@@ -196,24 +215,52 @@ export function Sidebar({ onLogout, role = "ADMIN", expanded, mobileOpen, onTogg
           {isUser ? "MINHA CONTA" : "ESPAÇO DE TRABALHO"}
         </Typography>
         <List disablePadding>
-          {routes.map(({ label, to, icon }) => (
-            <ListItemButton
-              key={to}
-              component={RouterLink}
-              to={to}
-              selected={pathname === to}
-              aria-label={label}
-              sx={{
-                minHeight: 48, mt: 0.5, borderRadius: 2,
-                px: showLabels ? 2 : 1.5, color: "#66766b",
-                "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
-                "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
-                "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}><SvgIcon>{icon}</SvgIcon></ListItemIcon>
-              <ListItemText primary={label} sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }} />
-            </ListItemButton>
+          {userGroups.map((group) => (
+            <Box key={group.id}>
+              {showLabels && (
+                <ListItemButton
+                  aria-expanded={isGroupOpen(group.id)}
+                  aria-controls={`sidebar-group-${group.id}`}
+                  onClick={() => toggleGroup(group.id)}
+                  sx={{ minHeight: 36, mt: 1.5, px: 1, color: "#89988d" }}
+                >
+                  <Typography variant="overline" sx={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: ".12em" }}>
+                    {group.label}
+                  </Typography>
+                  <SvgIcon sx={{ fontSize: 18, transform: isGroupOpen(group.id) ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
+                    <path d="m7.41 8.59 4.59 4.58 4.59-4.58L18 10l-6 6-6-6z" />
+                  </SvgIcon>
+                </ListItemButton>
+              )}
+              <Collapse
+                id={`sidebar-group-${group.id}`}
+                in={!showLabels || isGroupOpen(group.id)}
+                timeout="auto"
+                unmountOnExit={showLabels}
+              >
+                <Box>
+                  {group.routes.map(({ label, to, icon }) => (
+                    <ListItemButton
+                      key={to}
+                      component={RouterLink}
+                      to={to}
+                      selected={pathname === to}
+                      aria-label={label}
+                      sx={{
+                        minHeight: 48, mt: 0.5, borderRadius: 2,
+                        px: showLabels ? 2 : 1.5, color: "#66766b",
+                        "&:hover": { bgcolor: "#edf6ef", color: "#1d6848" },
+                        "&.Mui-selected": { bgcolor: "#e1f0e5", color: "#1d6848" },
+                        "&.Mui-selected:hover": { bgcolor: "#d5eadb", color: "#17583d" },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: showLabels ? 36 : 0, color: "inherit" }}><SvgIcon>{icon}</SvgIcon></ListItemIcon>
+                      <ListItemText primary={label} sx={{ display: showLabels ? "block" : "none", "& .MuiTypography-root": { fontSize: 14, fontWeight: 700 } }} />
+                    </ListItemButton>
+                  ))}
+                </Box>
+              </Collapse>
+            </Box>
           ))}
           {!isUser && <>
           <ListItemButton

@@ -2,7 +2,7 @@ import { useEffect, useState, type ComponentProps } from 'react'
 import { Alert, Box, Button, Card, CardContent, Chip, CircularProgress, DialogContent, DialogTitle, Divider, Drawer, Grid, IconButton, Paper, Skeleton, Stack, SvgIcon, Typography } from '@mui/material'
 import { CardPayment, initMercadoPago } from '@mercadopago/sdk-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { useMeQuery } from '../../../../public/auth/queries/use-me-query'
 import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { LayoutUser } from '../../../../../shared/layout/layout-user'
@@ -114,6 +114,7 @@ export function SubscriptionsRoute() {
   const client = useQueryClient()
   const logout = useLogout()
   const userQuery = useMeQuery()
+  const isMySubscriptionsPage = useLocation().pathname === '/minhas-assinaturas'
   const [searchParams] = useSearchParams()
   const [detailsSubscriptionId, setDetailsSubscriptionId] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PublicSubscriptionPlan | null>(null)
@@ -127,11 +128,16 @@ export function SubscriptionsRoute() {
       ? 'Retorno do Mercado Pago recebido. O status da assinatura será atualizado após a confirmação.'
       : '',
   )
-  const plans = useQuery({ queryKey: queryKeys.plans, queryFn: getSubscriptionPlansService })
+  const plans = useQuery({
+    queryKey: queryKeys.plans,
+    queryFn: getSubscriptionPlansService,
+    enabled: !isMySubscriptionsPage,
+  })
   const subscriptions = useQuery({
     queryKey: queryKeys.mine,
     queryFn: getMySubscriptionsService,
     refetchInterval: checkoutState === 'pending' ? 2500 : false,
+    enabled: isMySubscriptionsPage || checkoutState === 'pending',
   })
   const createSubscription = useMutation({
     mutationFn: createSubscriptionService,
@@ -208,15 +214,19 @@ export function SubscriptionsRoute() {
       <Box sx={{ maxWidth: 1180, mx: 'auto', p: { xs: 2, sm: 3, md: 5 } }}>
         <Stack spacing={4}>
           <Box>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>Planos de assinatura</Typography>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+              {isMySubscriptionsPage ? 'Minhas assinaturas' : 'Planos de assinatura'}
+            </Typography>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
-              Escolha um nível e a frequência de cobrança. A assinatura é gerenciada pelo Mercado Pago.
+              {isMySubscriptionsPage
+                ? 'Acompanhe seus planos contratados, próximas cobranças e histórico.'
+                : 'Escolha um nível e a frequência de cobrança. A assinatura é gerenciada pelo Mercado Pago.'}
             </Typography>
           </Box>
 
+          {!isMySubscriptionsPage && <>
           {plans.isError && <Alert severity="error">{getApiErrorMessage(plans.error)}</Alert>}
           {successMessage && <Alert severity="success">{successMessage}</Alert>}
-          {cancelSubscription.isError && <Alert severity="error">{getApiErrorMessage(cancelSubscription.error)}</Alert>}
           {!publicKey && <Alert severity="error">Configure VITE_MP_PUBLIC_KEY no frontend para habilitar a tokenização segura do cartão.</Alert>}
 
           <Grid container spacing={2}>
@@ -360,6 +370,10 @@ export function SubscriptionsRoute() {
             )}
           </Drawer>
 
+          </>}
+
+          {isMySubscriptionsPage && <>
+          {cancelSubscription.isError && <Alert severity="error">{getApiErrorMessage(cancelSubscription.error)}</Alert>}
           <Stack spacing={2}>
             <Typography variant="h5" component="h2">Minhas assinaturas</Typography>
             {subscriptions.isError && <Alert severity="error">{getApiErrorMessage(subscriptions.error)}</Alert>}
@@ -518,6 +532,7 @@ export function SubscriptionsRoute() {
               </Box>
             )}
           </Drawer>
+          </>}
         </Stack>
       </Box>
     </LayoutUser>
