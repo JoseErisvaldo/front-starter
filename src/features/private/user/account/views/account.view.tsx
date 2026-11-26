@@ -1,6 +1,6 @@
-import { Box, Container, Stack, Typography } from '@mui/material'
+import { Box } from '@mui/material'
 import { LayoutUser } from '../../../../../shared/layout/layout-user'
-import { AccountDetailsCard } from '../components/account-details/account-details-card'
+import { UserProfileCard } from '../../../../../shared/components/user-profile-card'
 import { useAccountPage } from '../hooks/use-account-page'
 
 export function AccountView() {
@@ -9,17 +9,9 @@ export function AccountView() {
   return (
     <LayoutUser onLogout={logout}>
       <Box component="main" sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <Container maxWidth="md" sx={{ py: { xs: 3, md: 5 } }}>
-          <Stack spacing={3}>
-            <Box>
-              <Typography variant="h4" component="h1">Minha conta</Typography>
-              <Typography color="text.secondary" sx={{ mt: 1 }}>
-                Consulte os dados associados à sua conta.
-              </Typography>
-            </Box>
-            <AccountDetailsCard user={user} />
-          </Stack>
-        </Container>
+        <Box sx={{ maxWidth: 1180, mx: 'auto', p: { xs: 2, sm: 3, md: 5 } }}>
+          <UserProfileCard user={user} eyebrow="Meu perfil" />
+        </Box>
       </Box>
     </LayoutUser>
   )

@@ -1,8 +1,7 @@
-import { Box, Container, Stack, Typography } from '@mui/material'
+import { Box, Container } from '@mui/material'
 import type { User } from '../../../../public/auth/types/auth.types'
 import { MobileSidebarBar, SIDEBAR_WIDTH, Sidebar } from '../../../../../shared/layout/sidebar/sidebar'
-import { AdminAccountProfileCard } from '../components/admin-account-details/admin-account-profile-card'
-import { AdminAccountAccessCard } from '../components/admin-account-details/admin-account-access-card'
+import { UserProfileCard } from '../../../../../shared/components/user-profile-card'
 import { useAdminAccountPage } from '../hooks/use-admin-account-page'
 
 type Props = {
@@ -39,36 +38,8 @@ export function AdminAccountView({ user, onLogout }: Props) {
         }}
       >
         <Container maxWidth="lg">
-          <Stack spacing={1} sx={{ mb: 4 }}>
-            <Stack
-              direction={isMobile ? 'column' : 'row'}
-              spacing={1}
-              sx={{ alignItems: 'flex-start' }}
-            >
-              <Box>
-                <Typography variant="overline" sx={{ color: '#26714f', fontWeight: 700, letterSpacing: '.12em' }}>
-                  ÁREA ADMINISTRATIVA
-                </Typography>
-                <Typography variant="h4" component="h1" sx={{ color: '#173d30', fontWeight: 700 }}>
-                  Minha conta
-                </Typography>
-                <Typography color="text.secondary">
-                  Gerencie e consulte os dados do seu perfil administrativo.
-                </Typography>
-              </Box>
-            </Stack>
-          </Stack>
-
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.4fr) minmax(260px, .8fr)' },
-              gap: 2.5,
-              alignItems: 'start',
-            }}
-          >
-            <AdminAccountProfileCard user={user} />
-            <AdminAccountAccessCard user={user} />
+          <Box sx={{ maxWidth: 1180, mx: 'auto' }}>
+            <UserProfileCard user={user} eyebrow="Perfil administrativo" />
           </Box>
         </Container>
       </Box>
