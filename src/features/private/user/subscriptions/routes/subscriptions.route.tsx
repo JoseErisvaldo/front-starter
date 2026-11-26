@@ -13,6 +13,10 @@ import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { logError } from '../../../../../shared/lib/log-error'
 import { SubscriptionStatusChip } from '../../../../subscriptions/components/subscription-status-chip'
 import {
+  subscriptionRecurrenceLabels,
+  subscriptionTierLabels,
+} from '../../../../subscriptions/constants/subscription-options'
+import {
   cancelSubscriptionService,
   createSubscriptionService,
   getMySubscriptionsService,
@@ -24,8 +28,6 @@ const publicKey =
   import.meta.env.VITE_MP_SUBSCRIPTIONS_PUBLIC_KEY ?? import.meta.env.VITE_MP_PUBLIC_KEY
 if (publicKey) initMercadoPago(publicKey, { locale: 'pt-BR' })
 
-const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
-const tierNames = { BASIC: 'Básico', INTERMEDIATE: 'Intermediário', ADVANCED: 'Avançado' } as const
 const queryKeys = {
   plans: ['subscription-plans'] as const,
   mine: ['my-subscriptions'] as const,
@@ -247,7 +249,7 @@ export function SubscriptionsRoute() {
                   <ToggleButton
                     key={recurrence}
                     value={recurrence}
-                    aria-label={`Planos com cobrança ${recurrenceNames[recurrence].toLowerCase()}`}
+                    aria-label={`Planos com cobrança ${subscriptionRecurrenceLabels[recurrence].toLowerCase()}`}
                     sx={{
                       px: { xs: 1.5, sm: 2.5 },
                       py: 1,
@@ -258,7 +260,7 @@ export function SubscriptionsRoute() {
                       '&:hover': { bgcolor: '#dce8df' },
                     }}
                   >
-                    {recurrenceNames[recurrence]}
+                    {subscriptionRecurrenceLabels[recurrence]}
                   </ToggleButton>
                 ))}
               </ToggleButtonGroup>
@@ -303,7 +305,7 @@ export function SubscriptionsRoute() {
                           {plan.name}
                         </Typography>
                         <Chip
-                          label={tierNames[plan.tier]}
+                          label={subscriptionTierLabels[plan.tier]}
                           color="primary"
                           size="small"
                           sx={{ flexShrink: 0, fontWeight: 700 }}
@@ -314,7 +316,7 @@ export function SubscriptionsRoute() {
                           {formatCurrency(plan.amount, plan.currency)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          / {recurrenceNames[plan.recurrence].toLowerCase()}
+                          / {subscriptionRecurrenceLabels[plan.recurrence].toLowerCase()}
                         </Typography>
                       </Box>
                       <Button
@@ -408,7 +410,7 @@ export function SubscriptionsRoute() {
                           </Typography>
                           <Typography variant="h6">{selectedPlan.name}</Typography>
                           <Typography color="text.secondary">
-                            Cobrança {recurrenceNames[selectedPlan.recurrence].toLowerCase()}
+                            Cobrança {subscriptionRecurrenceLabels[selectedPlan.recurrence].toLowerCase()}
                           </Typography>
                           <Typography variant="h5" sx={{ color: 'primary.main', fontWeight: 700 }}>
                             {formatCurrency(selectedPlan.amount, selectedPlan.currency)}
@@ -467,7 +469,7 @@ export function SubscriptionsRoute() {
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
                     <Box>
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                        <Typography variant="h6">{subscription.plan.name} · {recurrenceNames[subscription.plan.recurrence]}</Typography>
+                        <Typography variant="h6">{subscription.plan.name} · {subscriptionRecurrenceLabels[subscription.plan.recurrence]}</Typography>
                         <SubscriptionStatusChip status={subscription.status} />
                       </Stack>
                       <Typography color="text.secondary">
@@ -540,8 +542,8 @@ export function SubscriptionsRoute() {
                     <Paper variant="outlined" sx={{ p: 2 }}>
                       <Stack spacing={1}>
                         <Typography variant="subtitle2">Plano contratado</Typography>
-                        <DetailRow label="Nível" value={tierNames[detailsSubscription.plan.tier]} />
-                        <DetailRow label="Recorrência" value={recurrenceNames[detailsSubscription.plan.recurrence]} />
+                        <DetailRow label="Nível" value={subscriptionTierLabels[detailsSubscription.plan.tier]} />
+                        <DetailRow label="Recorrência" value={subscriptionRecurrenceLabels[detailsSubscription.plan.recurrence]} />
                         <DetailRow label="Valor por cobrança" value={formatCurrency(detailsSubscription.plan.amount, detailsSubscription.plan.currency)} />
                       </Stack>
                     </Paper>

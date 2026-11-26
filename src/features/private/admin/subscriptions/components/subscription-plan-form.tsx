@@ -2,20 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { Alert, Button, Checkbox, FormControlLabel, MenuItem, Stack, TextField } from '@mui/material'
 import { CurrencyInput, formatCurrencyInput, parseCurrencyInput } from '../../../../../shared/components/currency-input'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
-import { saveSubscriptionPlanService } from '../services/subscriptions.service'
-import type { PlanInput, SubscriptionPlan } from '../../../../subscriptions/schema/subscriptions.schema'
-
-const tiers = [
-  { value: 'BASIC', label: 'Básico' },
-  { value: 'INTERMEDIATE', label: 'Intermediário' },
-  { value: 'ADVANCED', label: 'Avançado' },
-] as const
-const recurrences = [
-  { value: 'WEEKLY', label: 'Semanal' },
-  { value: 'MONTHLY', label: 'Mensal' },
-  { value: 'QUARTERLY', label: 'Trimestral' },
-  { value: 'YEARLY', label: 'Anual' },
-] as const
+import { useCreateSubscriptionPlanMutation } from '../mutations/use-create-subscription-plan-mutation'
+import { useUpdateSubscriptionPlanMutation } from '../mutations/use-update-subscription-plan-mutation'
+import type { PlanInput, SubscriptionPlan } from '../types/admin-subscriptions.types'
+import {
+  subscriptionRecurrences,
+  subscriptionTiers,
+} from '../../../../subscriptions/constants/subscription-options'
 
 type Props = {
   plan?: SubscriptionPlan
@@ -29,7 +22,9 @@ export function SubscriptionPlanForm({ plan, onSaved }: Props) {
   const [amount, setAmount] = useState(plan?.amount ? formatCurrencyInput(String(Math.round(plan.amount * 100))) : '')
   const [active, setActive] = useState(plan?.active ?? true)
   const [error, setError] = useState('')
-  const [pending, setPending] = useState(false)
+  const createPlan = useCreateSubscriptionPlanMutation()
+  const updatePlan = useUpdateSubscriptionPlanMutation()
+  const isPending = createPlan.isPending || updatePlan.isPending
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -45,14 +40,15 @@ export function SubscriptionPlanForm({ plan, onSaved }: Props) {
       return
     }
     const payload = { name: trimmedName, tier, recurrence, amount: parsedAmount, active }
-    setPending(true)
     try {
-      await saveSubscriptionPlanService({ ...(plan ? { id: plan.id } : {}), plan: payload })
+      if (plan) {
+        await updatePlan.mutateAsync({ id: plan.id, plan: payload })
+      } else {
+        await createPlan.mutateAsync(payload)
+      }
       onSaved()
     } catch (submitError) {
       setError(getApiErrorMessage(submitError))
-    } finally {
-      setPending(false)
     }
   }
 
@@ -67,10 +63,10 @@ export function SubscriptionPlanForm({ plan, onSaved }: Props) {
         fullWidth
       />
       <TextField select label="Plano" value={tier} onChange={(event) => setTier(event.target.value as PlanInput['tier'])} fullWidth>
-        {tiers.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+        {subscriptionTiers.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
       </TextField>
       <TextField select label="Recorrência" value={recurrence} onChange={(event) => setRecurrence(event.target.value as PlanInput['recurrence'])} fullWidth>
-        {recurrences.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
+        {subscriptionRecurrences.map((option) => <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>)}
       </TextField>
       <CurrencyInput
         label="Valor por cobrança"
@@ -86,8 +82,8 @@ export function SubscriptionPlanForm({ plan, onSaved }: Props) {
         </Alert>
       )}
       {error && <Alert severity="error" role="alert">{error}</Alert>}
-      <Button type="submit" variant="contained" disabled={pending}>
-        {pending ? 'Salvando...' : plan ? 'Salvar alterações' : 'Criar opção de plano'}
+      <Button type="submit" variant="contained" disabled={isPending}>
+        {isPending ? 'Salvando...' : plan ? 'Salvar alterações' : 'Criar opção de plano'}
       </Button>
     </Stack>
   )

@@ -1,45 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { Button, Divider, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import type {
-  AdminPlanListQuery,
-  AdminSubscriptionsQuery,
-} from '../../../../subscriptions/schema/subscriptions.schema'
-
-export type AdminPlanFilters = {
-  search: string
-  tier: AdminPlanListQuery['tier'] | ''
-  recurrence: AdminPlanListQuery['recurrence'] | ''
-  active: AdminPlanListQuery['active'] | ''
-}
-
-export type AdminSubscriptionFilters = {
-  search: string
-  status: string
-  tier: AdminSubscriptionsQuery['tier'] | ''
-  recurrence: AdminSubscriptionsQuery['recurrence'] | ''
-  createdAtFrom: string
-  createdAtTo: string
-  nextPaymentDateFrom: string
-  nextPaymentDateTo: string
-}
-
-export const emptyPlanFilters: AdminPlanFilters = {
-  search: '',
-  tier: '',
-  recurrence: '',
-  active: '',
-}
-
-export const emptySubscriptionFilters: AdminSubscriptionFilters = {
-  search: '',
-  status: '',
-  tier: '',
-  recurrence: '',
-  createdAtFrom: '',
-  createdAtTo: '',
-  nextPaymentDateFrom: '',
-  nextPaymentDateTo: '',
-}
+import {
+  emptyPlanFilters,
+  emptySubscriptionFilters,
+  type AdminPlanFilters,
+  type AdminSubscriptionFilters,
+} from '../types/admin-subscriptions.types'
+import {
+  subscriptionRecurrences,
+  subscriptionTiers,
+} from '../../../../subscriptions/constants/subscription-options'
+import { adminSubscriptionStatuses } from '../constants/admin-subscription-options'
 
 export function getActiveSubscriptionPlanFilterCount(filters: AdminPlanFilters) {
   return Object.values(filters).filter(Boolean).length
@@ -60,30 +31,6 @@ type SubscriptionFormProps = {
   onApply: (filters: AdminSubscriptionFilters) => void
   onClose: () => void
 }
-
-const tiers = [
-  { value: 'BASIC', label: 'Básico' },
-  { value: 'INTERMEDIATE', label: 'Intermediário' },
-  { value: 'ADVANCED', label: 'Avançado' },
-] as const
-
-const recurrences = [
-  { value: 'WEEKLY', label: 'Semanal' },
-  { value: 'MONTHLY', label: 'Mensal' },
-  { value: 'QUARTERLY', label: 'Trimestral' },
-  { value: 'YEARLY', label: 'Anual' },
-] as const
-
-const subscriptionStatuses = [
-  { value: 'authorized', label: 'Ativa' },
-  { value: 'active', label: 'Ativa' },
-  { value: 'pending', label: 'Pendente' },
-  { value: 'paused', label: 'Pausada' },
-  { value: 'canceled', label: 'Cancelada' },
-  { value: 'cancelled', label: 'Cancelada' },
-  { value: 'error', label: 'Erro na criação' },
-  { value: 'rejected', label: 'Recusada' },
-] as const
 
 export function AdminSubscriptionPlanFiltersForm({
   filters,
@@ -121,7 +68,7 @@ export function AdminSubscriptionPlanFiltersForm({
           fullWidth
         >
           <MenuItem value="">Todos</MenuItem>
-          {tiers.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
+          {subscriptionTiers.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
         </TextField>
         <TextField
           select
@@ -131,7 +78,7 @@ export function AdminSubscriptionPlanFiltersForm({
           fullWidth
         >
           <MenuItem value="">Todas</MenuItem>
-          {recurrences.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
+          {subscriptionRecurrences.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
         </TextField>
         <TextField
           select
@@ -201,7 +148,7 @@ export function AdminSubscriptionsFiltersForm({
           fullWidth
         >
           <MenuItem value="">Todos</MenuItem>
-          {subscriptionStatuses.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
+          {adminSubscriptionStatuses.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
         </TextField>
         <TextField
           select
@@ -211,7 +158,7 @@ export function AdminSubscriptionsFiltersForm({
           fullWidth
         >
           <MenuItem value="">Todos</MenuItem>
-          {tiers.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
+          {subscriptionTiers.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
         </TextField>
         <TextField
           select
@@ -221,7 +168,7 @@ export function AdminSubscriptionsFiltersForm({
           fullWidth
         >
           <MenuItem value="">Todas</MenuItem>
-          {recurrences.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
+          {subscriptionRecurrences.map(({ value, label }) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
         </TextField>
         <Typography variant="subtitle2">Data da assinatura</Typography>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>

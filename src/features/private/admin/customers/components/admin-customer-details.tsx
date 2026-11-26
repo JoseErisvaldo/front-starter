@@ -3,11 +3,12 @@ import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
 import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
 import { SubscriptionStatusChip } from '../../../../subscriptions/components/subscription-status-chip'
+import {
+  subscriptionRecurrenceLabels,
+  subscriptionTierLabels,
+} from '../../../../subscriptions/constants/subscription-options'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { useAdminCustomerDetailsQuery } from '../queries/use-admin-customer-details-query'
-
-const tierNames = { BASIC: 'Básico', INTERMEDIATE: 'Intermediário', ADVANCED: 'Avançado' } as const
-const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
 
 export function AdminCustomerDetails({ customerId }: { customerId: string }) {
   const details = useAdminCustomerDetailsQuery(customerId)
@@ -59,7 +60,7 @@ export function AdminCustomerDetails({ customerId }: { customerId: string }) {
               <SubscriptionStatusChip status={subscription.status} />
             </Stack>
             <Typography variant="body2" color="text.secondary">
-              {tierNames[subscription.plan.tier]} · {recurrenceNames[subscription.plan.recurrence]} · {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança
+              {subscriptionTierLabels[subscription.plan.tier]} · {subscriptionRecurrenceLabels[subscription.plan.recurrence]} · {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança
             </Typography>
             <Typography variant="body2">Assinada em: {formatBrazilianDate(subscription.createdAt)}</Typography>
             <Typography variant="body2">

@@ -23,8 +23,8 @@ const loadAdminOrdersRoute = () =>
   )
 
 const loadAdminSubscriptionsRoute = () =>
-  import('../features/private/admin/subscriptions/routes/admin-subscriptions.route').then(
-    (module) => module.AdminSubscriptionsRoute,
+  import('../features/private/admin/subscriptions').then(
+    (module) => module.AdminSubscriptionsView,
   )
 
 const loadAdminCustomersRoute = () =>
