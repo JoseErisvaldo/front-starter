@@ -1,4 +1,5 @@
 export { PaymentCheckoutView } from './components/payment-checkout/payment-checkout'
+export { CheckoutProgressStepper } from './components/payment-checkout/checkout-progress-stepper'
 export { PaymentStatusFeedback } from './components/payment-status/payment-status-feedback'
 export { PixPaymentInstructions } from './components/payment-status/pix-payment-instructions'
 export { paymentQueryKeys } from './endpoints-keys/payment.keys'

@@ -4,13 +4,16 @@ import {
   Box,
   Button,
   Container,
-  IconButton,
+  Drawer,
+  Fade,
+  Fab,
   InputAdornment,
   Stack,
   TextField,
   Toolbar,
   Typography,
 } from "@mui/material";
+import type { CSSProperties } from "react";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import { Link as RouterLink } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -24,11 +27,21 @@ import { LayoutUser } from "../../../../shared/layout/layout-user";
 
 export function CatalogView() {
   const catalog = useCatalogPage();
+  const toastStyle: CSSProperties & { "--toastify-color-success": string } = {
+    "--toastify-color-success": "#28624d",
+  };
   const cartButton = (
-    <IconButton
-      aria-label={`Carrinho com ${catalog.cartCount} itens`}
+    <Fab
+      aria-label={`Abrir carrinho com ${catalog.cartCount} itens`}
       onClick={() => catalog.setIsCartOpen(true)}
       color="primary"
+      sx={{
+        position: "fixed",
+        right: { xs: 16, sm: 24 },
+        bottom: { xs: 20, sm: 24 },
+        zIndex: (theme) => theme.zIndex.speedDial,
+        boxShadow: 4,
+      }}
     >
       <ShoppingCartOutlinedIcon />
       {catalog.cartCount > 0 && (
@@ -36,8 +49,8 @@ export function CatalogView() {
           component="span"
           sx={{
             position: "absolute",
-            top: 0,
-            right: 0,
+            top: -4,
+            right: -4,
             fontSize: 11,
             fontWeight: 700,
             borderRadius: "50%",
@@ -52,12 +65,13 @@ export function CatalogView() {
           {catalog.cartCount}
         </Box>
       )}
-    </IconButton>
+    </Fab>
   );
 
   const content = (
     <>
       <ToastContainer
+        style={toastStyle}
         position="top-right"
         autoClose={2500}
         newestOnTop
@@ -80,7 +94,6 @@ export function CatalogView() {
             <Button component={RouterLink} to="/login">
               Entrar
             </Button>
-            {cartButton}
           </Toolbar>
         </AppBar>
       )}
@@ -95,7 +108,6 @@ export function CatalogView() {
               <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                 Nosso catálogo
               </Typography>
-              {catalog.user && cartButton}
             </Stack>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
               Encontre os produtos disponíveis e adicione ao seu carrinho.
@@ -135,21 +147,56 @@ export function CatalogView() {
         </Stack>
       </Container>
 
-      <CartDrawer
-        open={catalog.isCartOpen}
-        onClose={() => catalog.setIsCartOpen(false)}
-        onCheckout={catalog.onCheckout}
-      />
-      {catalog.user && (
-        <PaymentCheckoutView
-          items={catalog.checkoutItems}
-          user={catalog.user}
-          result={catalog.paymentResult}
-          onClose={() => catalog.setCheckoutItems([])}
-          onViewOrders={catalog.onViewOrders}
-          onResult={catalog.onPaymentResult}
-        />
-      )}
+      <Drawer
+        anchor="right"
+        open={catalog.isCartOpen || catalog.checkoutItems.length > 0}
+        onClose={() => {
+          catalog.setCheckoutItems([]);
+          catalog.setIsCartOpen(false);
+        }}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: "100%", sm: 560 },
+              maxWidth: "100vw",
+              display: "flex",
+              flexDirection: "column",
+              bgcolor: "#f8faf8",
+              overflow: "hidden",
+            },
+          },
+        }}
+      >
+        <Fade
+          key={catalog.checkoutItems.length > 0 ? "checkout" : "cart"}
+          in
+          appear
+          timeout={160}
+        >
+          <Box sx={{ height: "100%", width: "100%" }}>
+            {catalog.checkoutItems.length > 0 && catalog.user ? (
+              <PaymentCheckoutView
+                items={catalog.checkoutItems}
+                user={catalog.user}
+                result={catalog.paymentResult}
+                onBack={() => catalog.setCheckoutItems([])}
+                onClose={() => {
+                  catalog.setCheckoutItems([]);
+                  catalog.setIsCartOpen(false);
+                }}
+                onViewOrders={catalog.onViewOrders}
+                onResult={catalog.onPaymentResult}
+              />
+            ) : (
+              <CartDrawer
+                onClose={() => catalog.setIsCartOpen(false)}
+                onCheckout={catalog.onCheckout}
+              />
+            )}
+          </Box>
+        </Fade>
+      </Drawer>
+      {cartButton}
     </>
   );
 

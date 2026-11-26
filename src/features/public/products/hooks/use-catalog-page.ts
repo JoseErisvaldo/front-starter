@@ -60,7 +60,6 @@ export function useCatalogPage() {
     }
     setCheckoutItems(items)
     setPaymentResult(null)
-    setIsCartOpen(false)
   }
 
   function handlePaymentResult(payment: PaymentResponse['payment']) {
@@ -90,6 +89,7 @@ export function useCatalogPage() {
     onPaymentResult: handlePaymentResult,
     onViewOrders: () => {
       setCheckoutItems([])
+      setIsCartOpen(false)
       navigate('/pedidos')
     },
   }
