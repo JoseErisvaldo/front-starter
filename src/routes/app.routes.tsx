@@ -33,8 +33,8 @@ const loadAdminCustomersRoute = () =>
   )
 
 const loadCustomerDashboardRoute = () =>
-  import('../features/private/admin/dashboard/customers/routes/customer-dashboard.route').then(
-    (module) => module.CustomerDashboardRoute,
+  import('../features/private/admin/dashboard/customers').then(
+    (module) => module.CustomerDashboardView,
   )
 
 const loadOrdersDashboardRoute = () =>

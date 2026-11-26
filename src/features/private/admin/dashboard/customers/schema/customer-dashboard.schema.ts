@@ -10,5 +10,3 @@ export const customerDashboardSchema = z.object({
   daily: z.array(z.object({ date: z.string(), count: z.number().int(), average: z.number() })),
   monthly: z.array(z.object({ month: z.string(), count: z.number().int(), average: z.number() })),
 })
-
-export type CustomerDashboard = z.infer<typeof customerDashboardSchema>
