@@ -3,8 +3,8 @@ import { logError } from '../../../../../shared/lib/log-error'
 import {
   adminOrdersQuerySchema,
   adminOrdersResponseSchema,
-  type AdminOrdersQuery,
 } from '../schema/admin-orders.schema'
+import type { AdminOrdersQuery } from '../types/admin-orders.types'
 
 export async function getAdminOrdersService(query: AdminOrdersQuery) {
   try {

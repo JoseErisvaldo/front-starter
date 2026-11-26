@@ -1,13 +1,14 @@
-import { Alert, Chip, Divider, Skeleton, Stack, Typography } from '@mui/material'
-import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
-import { formatCurrency } from '../../../../../shared/lib/format-currency'
-import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
+import { Alert, Chip, Divider, Stack, Typography } from '@mui/material'
+import { getApiErrorMessage } from '../../../../../../shared/lib/api-error'
+import { formatCurrency } from '../../../../../../shared/lib/format-currency'
+import { formatBrazilianDate } from '../../../../../../shared/utils/format-brazilian-date'
 import {
   translatePaymentMethod,
   translatePaymentStatus,
   translatePaymentStatusDetail,
-} from '../../../../../shared/i18n/payment'
-import { useAdminOrderDetailsQuery } from '../queries/use-admin-order-details-query'
+} from '../../../../../../shared/i18n/payment'
+import { useAdminOrderDetailsQuery } from '../../queries/use-admin-order-details-query'
+import { AdminOrderDetailsSkeleton } from './admin-order-details.skeleton'
 
 type Props = {
   paymentId: string
@@ -37,32 +38,7 @@ export function AdminOrderDetails({ paymentId }: Props) {
   const orderQuery = useAdminOrderDetailsQuery(paymentId)
   const order = orderQuery.data
 
-  if (orderQuery.isLoading) {
-    return (
-      <Stack spacing={2.5} aria-label="Carregando detalhes do pedido">
-        <Skeleton variant="rounded" width={112} height={28} />
-        <Divider />
-        <Stack spacing={1}>
-          <Skeleton width={72} height={20} />
-          <Skeleton width="55%" height={24} />
-          <Skeleton width="75%" height={20} />
-        </Stack>
-        <Divider />
-        <Stack spacing={1}>
-          <Skeleton width={120} height={20} />
-          <Skeleton variant="rounded" height={56} />
-          <Skeleton variant="rounded" height={56} />
-          <Skeleton width="45%" height={24} sx={{ alignSelf: 'flex-end' }} />
-        </Stack>
-        <Divider />
-        <Stack spacing={1}>
-          <Skeleton width={104} height={20} />
-          <Skeleton width="80%" height={20} />
-          <Skeleton width="92%" height={20} />
-        </Stack>
-      </Stack>
-    )
-  }
+  if (orderQuery.isLoading) return <AdminOrderDetailsSkeleton />
   if (orderQuery.error) {
     return (
       <Alert severity="error">

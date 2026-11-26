@@ -61,7 +61,3 @@ export const adminOrderDetailsResponseSchema = z.object({
     })),
   }),
 })
-
-export type AdminOrder = z.infer<typeof adminOrdersResponseSchema>['payments'][number]
-export type AdminOrderDetails = z.infer<typeof adminOrderDetailsResponseSchema>['payment']
-export type AdminOrdersQuery = z.infer<typeof adminOrdersQuerySchema>

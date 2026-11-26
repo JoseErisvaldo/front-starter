@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { AdminOrdersQuery } from '../schema/admin-orders.schema'
+import type { AdminOrdersQuery } from '../types/admin-orders.types'
 import { getAdminOrdersService } from '../services/get-admin-orders.service'
-import { adminOrdersQueryKeys } from './admin-orders.keys'
+import { adminOrdersQueryKeys } from '../endpoints-keys/admin-orders.keys'
 
 export function useAdminOrdersQuery(query: AdminOrdersQuery) {
   return useQuery({

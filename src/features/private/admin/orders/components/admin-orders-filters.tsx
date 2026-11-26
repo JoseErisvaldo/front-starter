@@ -1,32 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Button, Divider, MenuItem, Stack, TextField } from '@mui/material'
-
-export type AdminOrdersFilters = {
-  search: string
-  customerName: string
-  paymentMethod: '' | 'pix' | 'card'
-  status: '' | 'paid' | 'pending' | 'failed' | 'cancelled' | 'expired'
-  dateFrom: string
-  dateTo: string
-}
+import {
+  emptyAdminOrdersFilters,
+  type AdminOrdersFilters,
+} from '../types/admin-orders.types'
 
 type Props = {
   filters: AdminOrdersFilters
   onApply: (filters: AdminOrdersFilters) => void
   onClose: () => void
-}
-
-const emptyFilters: AdminOrdersFilters = {
-  search: '',
-  customerName: '',
-  paymentMethod: '',
-  status: '',
-  dateFrom: '',
-  dateTo: '',
-}
-
-export function getActiveAdminOrdersFilterCount(filters: AdminOrdersFilters) {
-  return Object.values(filters).filter(Boolean).length
 }
 
 export function AdminOrdersFiltersForm({ filters, onApply, onClose }: Props) {
@@ -52,9 +34,9 @@ export function AdminOrdersFiltersForm({ filters, onApply, onClose }: Props) {
   }
 
   function clearFilters() {
-    setValues(emptyFilters)
+    setValues(emptyAdminOrdersFilters)
     setError('')
-    onApply(emptyFilters)
+    onApply(emptyAdminOrdersFilters)
     onClose()
   }
 
