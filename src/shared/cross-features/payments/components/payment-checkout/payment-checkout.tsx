@@ -28,23 +28,22 @@ import {
   Typography,
 } from "@mui/material";
 import { CardPayment, initMercadoPago } from "@mercadopago/sdk-react";
-import { createPaymentInputSchema } from "../schema/payment.schema";
-import { useCreatePaymentMutation } from "../mutations/use-create-payment-mutation";
-import { usePaymentStatusQuery } from "../queries/use-payment-status-query";
-import { PaymentStatusFeedback } from "./payment-status-feedback.view";
-import { PixPaymentInstructions } from "./pix-payment-instructions.view";
-import type { PaymentResponse } from "../types/payment.types";
-import type { CartItem } from "../../../../public/cart/stores/cart.store";
-import type { User } from "../../../../public/auth/types/auth.types";
-import { formatCurrency } from "../../../../../shared/lib/format-currency";
-import { getApiErrorMessage } from "../../../../../shared/lib/api-error";
-import { logError } from "../../../../../shared/lib/log-error";
-import { getPaymentState } from "../utils/payment-status";
-import { submitIdempotentPayment } from "../utils/payment-idempotency";
+import { createPaymentInputSchema } from "../../schema/payment.schema";
+import { useCreatePaymentMutation } from "../../mutations/use-create-payment-mutation";
+import { usePaymentStatusQuery } from "../../queries/use-payment-status-query";
+import { PaymentStatusFeedback } from "../payment-status/payment-status-feedback";
+import { PixPaymentInstructions } from "../payment-status/pix-payment-instructions";
+import type { PaymentResponse } from "../../types/payment.types";
+import type { PaymentCheckoutItem, PaymentCustomer } from "../../types/payment.types";
+import { formatCurrency } from "../../../../lib/format-currency";
+import { getApiErrorMessage } from "../../../../lib/api-error";
+import { logError } from "../../../../lib/log-error";
+import { getPaymentState } from "../../utils/payment-status";
+import { submitIdempotentPayment } from "../../utils/payment-idempotency";
 
 type Props = {
-  items: CartItem[];
-  user: User;
+  items: PaymentCheckoutItem[];
+  user: PaymentCustomer;
   result: PaymentResponse["payment"] | null;
   onClose: () => void;
   onViewOrders: () => void;

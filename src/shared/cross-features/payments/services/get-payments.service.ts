@@ -1,5 +1,5 @@
-import { httpClient } from '../../../../../shared/services/http-client'
-import { logError } from '../../../../../shared/lib/log-error'
+import { httpClient } from '../../../services/http-client'
+import { logError } from '../../../lib/log-error'
 import { paymentListResponseSchema } from '../schema/payment.schema'
 
 export async function getPaymentsService(page: number, pageSize: number) {

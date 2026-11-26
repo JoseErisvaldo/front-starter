@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getPaymentsService } from '../services/get-payments.service'
 import { paymentQueryKeys } from '../endpoints-keys/payment.keys'
 import { isPaymentFinal } from '../utils/payment-status'
-import { TOKEN_STORAGE_KEY } from '../../../../../shared/services/http-client'
+import { TOKEN_STORAGE_KEY } from '../../../services/http-client'
 
 export function usePaymentsQuery(
   page: number,

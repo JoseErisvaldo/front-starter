@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 // TODO Ajuste ta importando outra features
-import { usePaymentsQuery } from '../../payments/queries/use-payments-query'
+import { usePaymentsQuery } from '../../../../../shared/cross-features/payments'
 
 export function useOrdersPage() {
   const logout = useLogout()

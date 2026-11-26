@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Alert, Box, Stack, SvgIcon, Typography } from "@mui/material";
-import { getPaymentState } from "../utils/payment-status";
+import { getPaymentState } from "../../utils/payment-status";
 
 type Props = {
   status: string;

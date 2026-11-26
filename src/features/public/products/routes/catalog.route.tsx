@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import type { PaymentResponse } from '../../../private/user/payments/types/payment.types'
+import {
+  PaymentCheckoutView,
+  paymentQueryKeys,
+  type PaymentResponse,
+} from '../../../../shared/cross-features/payments'
 import type { CartItem } from '../../cart/stores/cart.store'
 import { useCartStore } from '../../cart/stores/cart.store'
 import { CartDrawer } from '../../cart/components/cart-drawer.view'
 import { useMeQuery } from '../../auth/queries/use-me-query'
 import { CatalogView } from '../views/catalog.view'
 import { useProductsQuery } from '../queries/use-products-query'
-import { PaymentCheckoutView } from '../../../private/user/payments/components/payment-checkout.view'
-import { paymentQueryKeys } from '../../../private/user/payments/endpoints-keys/payment.keys'
 import { getApiErrorMessage } from '../../../../shared/lib/api-error'
 import { useLogout } from '../../auth/hooks/use-logout'
 import { ToastContainer, toast } from 'react-toastify'

@@ -11,16 +11,18 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { getApiErrorMessage } from "../../../../../shared/lib/api-error";
-import { formatCurrency } from "../../../../../shared/lib/format-currency";
+import { getApiErrorMessage } from "../../../../../../shared/lib/api-error";
+import { formatCurrency } from "../../../../../../shared/lib/format-currency";
 import {
   translatePaymentMethod,
   translatePaymentStatus,
   translatePaymentStatusDetail,
-} from "../../../../../shared/i18n/payment";
-import { usePaymentStatusQuery } from "../queries/use-payment-status-query";
-import { PaymentStatusFeedback } from "./payment-status-feedback.view";
-import { PixPaymentInstructions } from "./pix-payment-instructions.view";
+} from "../../../../../../shared/i18n/payment";
+import {
+  PaymentStatusFeedback,
+  PixPaymentInstructions,
+  usePaymentStatusQuery,
+} from "../../../../../../shared/cross-features/payments";
 
 type Props = {
   paymentId: string | null;
