@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Stack, Typography } from '@mui/material'
 import type { User } from '../../../../../public/auth/types/auth.types'
-import { formatAdminAccountDate } from '../../utils/format-admin-account-date'
+import { formatBrazilianLongDate } from '../../../../../../shared/utils/format-brazilian-long-date'
 
 export function AdminAccountProfileCard({ user }: { user: User }) {
   return (
@@ -20,7 +20,7 @@ export function AdminAccountProfileCard({ user }: { user: User }) {
           </Box>
           <Box>
             <Typography variant="overline" color="text.secondary">Conta criada em</Typography>
-            <Typography variant="body1">{formatAdminAccountDate(user.createdAt)}</Typography>
+            <Typography variant="body1">{formatBrazilianLongDate(user.createdAt)}</Typography>
           </Box>
         </Stack>
       </CardContent>

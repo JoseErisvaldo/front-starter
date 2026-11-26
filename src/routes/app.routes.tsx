@@ -5,7 +5,7 @@ import { AuthGuard } from '../features/private/guards/auth.guard'
 import { AdminRoute } from '../features/private/admin/routes/admin.route'
 import { AdminAccountRoute } from '../features/private/admin/account'
 import { OrdersRoute } from '../features/private/user/home/routes/orders.route'
-import { AccountRoute } from '../features/private/user/account/routes/account.route'
+import { AccountView } from '../features/private/user/account'
 import { AuthRoute } from '../features/public/auth/routes/auth.route'
 import { CatalogRoute } from '../features/public/products/routes/catalog.route'
 import { LayoutAdmin } from '../shared/layout/layout-admin'
@@ -119,7 +119,7 @@ const publicRoutes: RouteObject[] = [
 ]
 
 const userPrivateRoutes: RouteObject[] = [
-  { path: '/conta', element: <AccountRoute /> },
+  { path: '/conta', element: <AccountView /> },
   { path: '/pedidos', element: <OrdersRoute /> },
   {
     path: '/assinaturas',
