@@ -47,9 +47,15 @@ const loadSubscriptionsDashboardRoute = () =>
     (module) => module.SubscriptionsDashboardView,
   )
 
-const UserSubscriptionsRoute = lazy(() =>
-  import('../features/private/user/subscriptions/routes/subscriptions.route').then(
-    (module) => ({ default: module.SubscriptionsRoute }),
+const UserSubscriptionPlansView = lazy(() =>
+  import('../features/private/user/subscriptions').then(
+    (module) => ({ default: module.SubscriptionPlansView }),
+  ),
+)
+
+const MySubscriptionsView = lazy(() =>
+  import('../features/private/user/my-subscriptions').then(
+    (module) => ({ default: module.MySubscriptionsView }),
   ),
 )
 
@@ -125,7 +131,7 @@ const userPrivateRoutes: RouteObject[] = [
     path: '/assinaturas',
     element: (
       <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
-        <UserSubscriptionsRoute />
+        <UserSubscriptionPlansView />
       </Suspense>
     ),
   },
@@ -133,15 +139,7 @@ const userPrivateRoutes: RouteObject[] = [
     path: '/minhas-assinaturas',
     element: (
       <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
-        <UserSubscriptionsRoute />
-      </Suspense>
-    ),
-  },
-  {
-    path: '/minhas-assinaturas',
-    element: (
-      <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
-        <UserSubscriptionsRoute />
+        <MySubscriptionsView />
       </Suspense>
     ),
   },
