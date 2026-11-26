@@ -6,7 +6,13 @@ function getRedirectTo(state: unknown): string | null {
   if (!state || typeof state !== 'object' || !('from' in state)) return null
   const from = state.from
   if (typeof from !== 'string') return null
-  if (from === '/pedidos' || from === '/produtos' || from.startsWith('/produtos?')) {
+  if (
+    from === '/pedidos' ||
+    from === '/assinaturas' ||
+    from.startsWith('/assinaturas?') ||
+    from === '/produtos' ||
+    from.startsWith('/produtos?')
+  ) {
     return from
   }
   return null
@@ -20,7 +26,9 @@ export function useAuthRedirect() {
 
   const destination = user
     ? user.role === 'USER'
-      ? redirectTo?.startsWith('/produtos') ? redirectTo : '/produtos'
+      ? redirectTo?.startsWith('/assinaturas') || redirectTo?.startsWith('/produtos')
+        ? redirectTo
+        : '/produtos'
       : '/admin'
     : null
 

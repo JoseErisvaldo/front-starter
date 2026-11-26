@@ -7,11 +7,13 @@ export function SubscriptionPlanCard({
   plan,
   selected,
   enabled,
+  actionLabel,
   onSelect,
 }: {
   plan: PublicSubscriptionPlan
   selected: boolean
   enabled: boolean
+  actionLabel: string
   onSelect: (plan: PublicSubscriptionPlan) => void
 }) {
   return (
@@ -46,7 +48,7 @@ export function SubscriptionPlanCard({
             </Typography>
           </Box>
           <Button fullWidth variant="contained" disabled={!enabled} onClick={() => onSelect(plan)} sx={{ py: 1.1, fontWeight: 700 }}>
-            Assinar
+            {actionLabel}
           </Button>
         </Stack>
       </CardContent>

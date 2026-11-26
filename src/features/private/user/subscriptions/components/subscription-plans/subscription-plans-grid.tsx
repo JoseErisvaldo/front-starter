@@ -10,6 +10,7 @@ export function SubscriptionPlansGrid({
   publicKey,
   successMessage,
   onSelectPlan,
+  isAuthenticated,
 }: {
   plans: {
     data?: PublicSubscriptionPlan[]
@@ -22,6 +23,7 @@ export function SubscriptionPlansGrid({
   publicKey: string | undefined
   successMessage: string
   onSelectPlan: (plan: PublicSubscriptionPlan) => void
+  isAuthenticated: boolean
 }) {
   return (
     <>
@@ -48,7 +50,8 @@ export function SubscriptionPlansGrid({
             <SubscriptionPlanCard
               plan={plan}
               selected={selectedPlanId === plan.id}
-              enabled={Boolean(publicKey)}
+              enabled={!isAuthenticated || Boolean(publicKey)}
+              actionLabel={isAuthenticated ? 'Assinar' : 'Entrar para assinar'}
               onSelect={onSelectPlan}
             />
           </Grid>

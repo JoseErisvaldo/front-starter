@@ -1,7 +1,6 @@
-import { Button, Paper, Stack, Typography } from '@mui/material'
+import { Button, Divider, Paper, Stack, Typography } from '@mui/material'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
-import { translatePaymentStatus } from '../../../../../shared/i18n/payment'
 import { SubscriptionStatusChip } from '../../../../subscriptions/components/subscription-status-chip'
 import { subscriptionRecurrenceLabels } from '../../../../subscriptions/constants/subscription-options'
 import type { MySubscription } from '../types/my-subscriptions.types'
@@ -14,45 +13,66 @@ export function SubscriptionListItem({
   onViewDetails: (id: string) => void
 }) {
   return (
-    <Paper variant="outlined" sx={{ p: 2.5 }}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ justifyContent: 'space-between', alignItems: { sm: 'center' } }}>
-        <Stack>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography variant="h6">
-              {subscription.plan.name} · {subscriptionRecurrenceLabels[subscription.plan.recurrence]}
+    <Paper
+      variant="outlined"
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        borderRadius: 2,
+        borderColor: '#dce8df',
+        bgcolor: '#fff',
+      }}
+    >
+      <Stack spacing={2}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+        >
+          <Stack spacing={0.75} sx={{ minWidth: 0 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+              {subscription.plan.name}
             </Typography>
-            <SubscriptionStatusChip status={subscription.status} />
-          </Stack>
-          <Typography color="text.secondary">
-            {formatCurrency(subscription.plan.amount, subscription.plan.currency)} por cobrança
-          </Typography>
-          {subscription.nextPaymentDate && (
-            <>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Typography variant="body2" color="text.secondary">
-                Próxima cobrança: {formatBrazilianDate(subscription.nextPaymentDate)}
+                Cobrança {subscriptionRecurrenceLabels[subscription.plan.recurrence].toLowerCase()}
               </Typography>
-              {subscription.nextPaymentCountdown && (
-                <Typography variant="body2" color="text.secondary">{subscription.nextPaymentCountdown}</Typography>
-              )}
-            </>
-          )}
+              <SubscriptionStatusChip status={subscription.status} />
+            </Stack>
+          </Stack>
+          <Button
+            variant="outlined"
+            onClick={() => onViewDetails(subscription.id)}
+            sx={{ flexShrink: 0, alignSelf: { xs: 'flex-start', sm: 'center' } }}
+          >
+            Ver detalhes
+          </Button>
         </Stack>
-        <Button variant="outlined" onClick={() => onViewDetails(subscription.id)}>
-          Ver detalhes
-        </Button>
-      </Stack>
-      {subscription.charges.length > 0 && (
-        <Stack spacing={1} sx={{ mt: 2 }}>
-          <Typography variant="subtitle2">Cobranças</Typography>
-          {subscription.charges.map((charge) => (
-            <Typography key={charge.id} variant="body2" color="text.secondary">
-              {charge.paidAt ? formatBrazilianDate(charge.paidAt) : formatBrazilianDate(charge.createdAt)} ·{' '}
-              {charge.amount === null ? '—' : formatCurrency(charge.amount, charge.currency ?? subscription.plan.currency)} ·{' '}
-              {translatePaymentStatus(charge.status)}
+        <Divider />
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.5, sm: 5 }}>
+          <Stack spacing={0.25}>
+            <Typography variant="caption" color="text.secondary">VALOR POR COBRANÇA</Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {formatCurrency(subscription.plan.amount, subscription.plan.currency)}
             </Typography>
-          ))}
+          </Stack>
+          <Stack spacing={0.25}>
+            <Typography variant="caption" color="text.secondary">PRÓXIMA COBRANÇA</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {subscription.nextPaymentDate
+                ? formatBrazilianDate(subscription.nextPaymentDate)
+                : 'Ainda não agendada'}
+            </Typography>
+            {subscription.nextPaymentCountdown && (
+              <Typography variant="caption" color="text.secondary">
+                {subscription.nextPaymentCountdown}
+              </Typography>
+            )}
+          </Stack>
+          <Typography variant="caption" color="text.secondary" sx={{ alignSelf: { sm: 'center' } }}>
+            {subscription.charges.length} {subscription.charges.length === 1 ? 'cobrança registrada' : 'cobranças registradas'}
+          </Typography>
         </Stack>
-      )}
+      </Stack>
     </Paper>
   )
 }

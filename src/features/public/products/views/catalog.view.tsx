@@ -1,8 +1,6 @@
 import {
   Alert,
-  AppBar,
   Box,
-  Button,
   Container,
   Drawer,
   Fade,
@@ -10,12 +8,10 @@ import {
   InputAdornment,
   Stack,
   TextField,
-  Toolbar,
   Typography,
 } from "@mui/material";
 import type { CSSProperties } from "react";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
-import { Link as RouterLink } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { CartDrawer } from "../../cart/components/cart-drawer.view";
@@ -24,6 +20,7 @@ import { ProductGrid } from "../components/product-grid/product-grid";
 import { ProductGridSkeleton } from "../components/product-grid/product-grid.skeleton";
 import { PaymentCheckoutView } from "../../../../shared/cross-features/payments";
 import { LayoutUser } from "../../../../shared/layout/layout-user";
+import { PublicHeader } from "../../../../shared/components/public-header";
 
 export function CatalogView() {
   const catalog = useCatalogPage();
@@ -82,20 +79,11 @@ export function CatalogView() {
         theme="colored"
       />
       {!catalog.user && (
-        <AppBar position="sticky" color="inherit" elevation={0}>
-          <Toolbar component={Container} maxWidth="lg" sx={{ gap: 2 }}>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ flexGrow: 1, fontWeight: 700 }}
-            >
-              Produtos
-            </Typography>
-            <Button component={RouterLink} to="/login">
-              Entrar
-            </Button>
-          </Toolbar>
-        </AppBar>
+        <PublicHeader
+          title="Produtos"
+          links={[{ label: 'Assinaturas', to: '/assinaturas' }]}
+          redirectTo="/produtos"
+        />
       )}
 
       <Container maxWidth="lg" sx={{ py: 5 }}>

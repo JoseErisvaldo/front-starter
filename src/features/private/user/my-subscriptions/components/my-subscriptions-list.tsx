@@ -22,7 +22,14 @@ export function MySubscriptionsList({
     <>
       {cancellationError && <Alert severity="error">{cancellationError}</Alert>}
       <Stack spacing={2}>
-        <Typography variant="h5" component="h2">Minhas assinaturas</Typography>
+        <Stack spacing={1}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 750, letterSpacing: '-.04em' }}>
+            Minhas assinaturas
+          </Typography>
+          <Typography color="text.secondary">
+            Acompanhe seus planos, próximas cobranças e histórico de pagamentos.
+          </Typography>
+        </Stack>
         {isError && <Alert severity="error">{error ? getApiErrorMessage(error) : 'Não foi possível carregar as assinaturas.'}</Alert>}
         {isLoading && Array.from({ length: 2 }, (_, index) => (
           <Paper key={`subscription-skeleton-${index}`} variant="outlined" sx={{ p: 2.5 }}>

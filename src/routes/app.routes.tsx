@@ -110,6 +110,7 @@ function AdminRouteLoader({ title, subtitle, columns, toolbar = false, showTable
 const publicRoutes: RouteObject[] = [
   { path: '/', element: <Navigate to="/produtos" replace /> },
   { path: '/produtos', element: <CatalogView /> },
+  { path: '/assinaturas', element: <SubscriptionPlansView /> },
   { path: '/login', element: <AuthRoute mode="login" /> },
   { path: '/register', element: <AuthRoute mode="register" /> },
 ]
@@ -117,10 +118,6 @@ const publicRoutes: RouteObject[] = [
 const userPrivateRoutes: RouteObject[] = [
   { path: '/conta', element: <AccountView /> },
   { path: '/pedidos', element: <OrdersView /> },
-  {
-    path: '/assinaturas',
-    element: <SubscriptionPlansView />,
-  },
   {
     path: '/minhas-assinaturas',
     element: <MySubscriptionsView />,

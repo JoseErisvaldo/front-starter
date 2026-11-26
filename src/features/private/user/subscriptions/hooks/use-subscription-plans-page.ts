@@ -1,6 +1,6 @@
 import { useEffect, useState, type ComponentProps } from 'react'
 import { CardPayment } from '@mercadopago/sdk-react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMeQuery } from '../../../../public/auth/queries/use-me-query'
 import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
@@ -20,6 +20,8 @@ const mercadoPagoReturnMessage =
 export function useSubscriptionPlansPage() {
   const logout = useLogout()
   const userQuery = useMeQuery()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const [selectedPlan, setSelectedPlan] = useState<PublicSubscriptionPlan | null>(null)
   const [selectedRecurrence, setSelectedRecurrence] =
@@ -86,6 +88,13 @@ export function useSubscriptionPlansPage() {
   }
 
   function startCheckout(plan: PublicSubscriptionPlan) {
+    if (!userQuery.data) {
+      navigate('/login', {
+        state: { from: `${location.pathname}${location.search}` },
+      })
+      return
+    }
+
     setSuccessMessage('')
     setCheckoutState(null)
     setCheckoutError('')
