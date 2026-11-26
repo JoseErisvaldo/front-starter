@@ -1,6 +1,6 @@
 import { BarChart } from '@mui/x-charts/BarChart'
 import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
+import type { SubscriptionsDashboard } from '../types/subscriptions-dashboard.types'
 import { formatBrazilianCurrency, formatSubscriptionChartCurrency } from '../utils/subscription-dashboard-formatters'
 
 export function SubscriptionRevenueByDayChart({ data }: { data: SubscriptionsDashboard['daily'] }) {

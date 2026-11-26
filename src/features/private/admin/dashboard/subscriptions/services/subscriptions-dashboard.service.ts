@@ -3,8 +3,8 @@ import { logError } from '../../../../../../shared/lib/log-error'
 import {
   subscriptionsDashboardQuerySchema,
   subscriptionsDashboardResponseSchema,
-  type SubscriptionsDashboardQuery,
 } from '../schema/subscriptions-dashboard.schema'
+import type { SubscriptionsDashboardQuery } from '../types/subscriptions-dashboard.types'
 
 export async function getSubscriptionsDashboardService(query: SubscriptionsDashboardQuery) {
   try {

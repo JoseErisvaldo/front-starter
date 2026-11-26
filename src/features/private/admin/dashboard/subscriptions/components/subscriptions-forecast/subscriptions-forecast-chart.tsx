@@ -1,7 +1,7 @@
 import { BarPlot, ChartsContainer, ChartsGrid, ChartsLegend, ChartsTooltip, ChartsXAxis, ChartsYAxis, LinePlot } from '@mui/x-charts'
-import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
-import { formatBrazilianCurrency, formatSubscriptionChartCurrency } from '../utils/subscription-dashboard-formatters'
+import { formatBrazilianDayMonthLabel } from '../../../../../../../shared/utils/format-brazilian-date'
+import type { SubscriptionsDashboard } from '../../types/subscriptions-dashboard.types'
+import { formatBrazilianCurrency, formatSubscriptionChartCurrency } from '../../utils/subscription-dashboard-formatters'
 
 export function SubscriptionsForecastChart({ data }: {
   data: SubscriptionsDashboard['forecast']['daily']

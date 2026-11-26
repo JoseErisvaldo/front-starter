@@ -1,6 +1,6 @@
 import { Stack, Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
-import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
+import type { SubscriptionsDashboard } from '../types/subscriptions-dashboard.types'
 import { formatBrazilianCurrency } from '../utils/subscription-dashboard-formatters'
 
 export function TopSubscriptionPlansChart({ data }: { data: SubscriptionsDashboard['plans'] }) {

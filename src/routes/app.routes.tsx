@@ -43,7 +43,7 @@ const loadOrdersDashboardRoute = () =>
   )
 
 const loadSubscriptionsDashboardRoute = () =>
-  import('../features/private/admin/dashboard/subscriptions/views/subscriptions-dashboard.view').then(
+  import('../features/private/admin/dashboard/subscriptions').then(
     (module) => module.SubscriptionsDashboardView,
   )
 

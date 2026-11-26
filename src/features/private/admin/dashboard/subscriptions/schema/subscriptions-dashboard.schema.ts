@@ -61,6 +61,3 @@ export const subscriptionsDashboardResponseSchema = z.object({
     }),
   }),
 })
-
-export type SubscriptionsDashboardQuery = z.input<typeof subscriptionsDashboardQuerySchema>
-export type SubscriptionsDashboard = z.infer<typeof subscriptionsDashboardResponseSchema>

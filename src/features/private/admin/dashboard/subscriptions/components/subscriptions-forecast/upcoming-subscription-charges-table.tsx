@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography } from '@mui/material'
-import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
-import { formatBrazilianCurrency } from '../utils/subscription-dashboard-formatters'
+import { formatBrazilianDayMonthLabel } from '../../../../../../../shared/utils/format-brazilian-date'
+import type { SubscriptionsDashboard } from '../../types/subscriptions-dashboard.types'
+import { formatBrazilianCurrency } from '../../utils/subscription-dashboard-formatters'
 
 function getDaysUntilCharge(date: string, startDate: string) {
   const days = (Date.parse(`${date}T00:00:00.000Z`) - Date.parse(`${startDate}T00:00:00.000Z`)) / 86400000

@@ -1,7 +1,7 @@
 import { Box, Stack, Typography } from '@mui/material'
 import { PieChart } from '@mui/x-charts/PieChart'
-import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
-import { getSubscriptionStatusColor, getSubscriptionStatusLabel } from '../utils/subscription-dashboard-formatters'
+import type { SubscriptionsDashboard } from '../../types/subscriptions-dashboard.types'
+import { getSubscriptionStatusColor, getSubscriptionStatusLabel } from '../../utils/subscription-dashboard-formatters'
 
 export function SubscriptionsByStatusChart({ data }: { data: SubscriptionsDashboard['statuses'] }) {
   const chartData = data.map((item, index) => ({

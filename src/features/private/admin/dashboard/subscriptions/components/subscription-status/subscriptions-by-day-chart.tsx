@@ -1,7 +1,7 @@
 import { LineChart } from '@mui/x-charts/LineChart'
-import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { SubscriptionsDashboard } from '../schema/subscriptions-dashboard.schema'
-import { getSubscriptionStatusColor, getSubscriptionStatusLabel } from '../utils/subscription-dashboard-formatters'
+import { formatBrazilianDayMonthLabel } from '../../../../../../../shared/utils/format-brazilian-date'
+import type { SubscriptionsDashboard } from '../../types/subscriptions-dashboard.types'
+import { getSubscriptionStatusColor, getSubscriptionStatusLabel } from '../../utils/subscription-dashboard-formatters'
 
 export function SubscriptionsByDayChart({ data, statuses }: {
   data: SubscriptionsDashboard['daily']
