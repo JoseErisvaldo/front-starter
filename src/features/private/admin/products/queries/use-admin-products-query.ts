@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { AdminProductsQuery } from '../schema/admin-products.schema'
+import type { AdminProductsQuery } from '../types/admin-products.types'
 import { adminProductsQueryKeys } from '../endpoints-keys/admin-products.keys'
 import { getAdminProductsService } from '../services/get-admin-products.service'
 

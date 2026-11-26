@@ -2,8 +2,8 @@ import { httpClient } from '../../../../../shared/services/http-client'
 import { logError } from '../../../../../shared/lib/log-error'
 import {
   adminProductsResponseSchema,
-  type AdminProductsQuery,
 } from '../schema/admin-products.schema'
+import type { AdminProductsQuery } from '../types/admin-products.types'
 
 export async function getAdminProductsService(query: AdminProductsQuery) {
   try {

@@ -21,6 +21,3 @@ export const adminProductsResponseSchema = z.object({
     total: z.number().int(),
   }),
 })
-
-export type AdminProductsQuery = z.infer<typeof adminProductsQuerySchema>
-export type AdminProduct = z.infer<typeof adminProductSchema>

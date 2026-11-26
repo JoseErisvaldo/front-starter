@@ -1,7 +1,8 @@
 import { z } from 'zod'
 import { httpClient } from '../../../../../shared/services/http-client'
 import { logError } from '../../../../../shared/lib/log-error'
-import { adminProductSchema, type AdminProduct } from '../schema/admin-products.schema'
+import { adminProductSchema } from '../schema/admin-products.schema'
+import type { AdminProduct } from '../types/admin-products.types'
 import type { CreateProductInput } from '../schema/create-product.schema'
 
 const responseSchema = z.object({ product: adminProductSchema })

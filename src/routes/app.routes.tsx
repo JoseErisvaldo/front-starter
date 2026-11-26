@@ -13,8 +13,8 @@ import { AdminTableSkeleton } from '../shared/components/admin-table-skeleton'
 import { useLogout } from '../features/public/auth/hooks/use-logout'
 
 const loadAdminProductsRoute = () =>
-  import('../features/private/admin/products/routes/admin-products.route').then(
-    (module) => module.AdminProductsRoute,
+  import('../features/private/admin/products').then(
+    (module) => module.AdminProductsView,
   )
 
 const loadAdminOrdersRoute = () =>

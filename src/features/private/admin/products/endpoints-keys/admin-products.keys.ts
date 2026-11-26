@@ -1,4 +1,4 @@
-import type { AdminProductsQuery } from '../schema/admin-products.schema'
+import type { AdminProductsQuery } from '../types/admin-products.types'
 
 export const adminProductsQueryKeys = {
   all: ['admin-products'] as const,

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Alert, Button, Stack, TextField } from '@mui/material'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
 import { CurrencyInput, formatCurrencyInput, parseCurrencyInput } from '../../../../../shared/components/currency-input'
-import type { AdminProduct } from '../schema/admin-products.schema'
+import type { AdminProduct } from '../types/admin-products.types'
 import { createProductInputSchema } from '../schema/create-product.schema'
 import { useUpdateProductMutation } from '../mutations/use-update-product-mutation'
 
