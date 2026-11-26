@@ -1,6 +1,6 @@
 import { BarChart } from '@mui/x-charts/BarChart'
 import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { OrdersDashboard } from '../schema/orders-dashboard.schema'
+import type { OrdersDashboard } from '../types/orders-dashboard.types'
 import { formatBrazilianCurrency, formatOrdersChartCurrency } from '../utils/orders-dashboard-formatters'
 import { MultilineBarLabel } from './multiline-bar-label'
 

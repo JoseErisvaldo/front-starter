@@ -38,7 +38,7 @@ const loadCustomerDashboardRoute = () =>
   )
 
 const loadOrdersDashboardRoute = () =>
-  import('../features/private/admin/dashboard/orders/views/orders-dashboard.view').then(
+  import('../features/private/admin/dashboard/orders').then(
     (module) => module.OrdersDashboardView,
   )
 

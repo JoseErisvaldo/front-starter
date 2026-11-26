@@ -1,8 +1,8 @@
 import { BarChart } from '@mui/x-charts/BarChart'
-import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { OrdersDashboard } from '../schema/orders-dashboard.schema'
-import { formatOrdersChartCurrency } from '../utils/orders-dashboard-formatters'
-import { MultilineBarLabel } from './multiline-bar-label'
+import { formatBrazilianDayMonthLabel } from '../../../../../../../shared/utils/format-brazilian-date'
+import type { OrdersDashboard } from '../../types/orders-dashboard.types'
+import { formatOrdersChartCurrency } from '../../utils/orders-dashboard-formatters'
+import { MultilineBarLabel } from '../multiline-bar-label'
 
 export function TotalOrdersByDayChart({ data }: { data: OrdersDashboard['daily'] }) {
   const maxOrders = Math.max(0, ...data.map((item) => item.orders))

@@ -54,6 +54,3 @@ export const ordersDashboardResponseSchema = z.object({
     })),
   })),
 })
-
-export type OrdersDashboardQuery = z.infer<typeof ordersDashboardQuerySchema>
-export type OrdersDashboard = z.infer<typeof ordersDashboardResponseSchema>

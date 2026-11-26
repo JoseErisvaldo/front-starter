@@ -1,6 +1,10 @@
-import { ProductRankingChart } from './product-ranking-chart'
-import type { OrdersDashboard } from '../schema/orders-dashboard.schema'
+import type { OrdersDashboard } from "../types/orders-dashboard.types";
+import { ProductRankingChart } from "./top-products/product-ranking-chart";
 
-export function TopProductsByRevenueChart({ data }: { data: OrdersDashboard['topProductsByRevenue'] }) {
-  return <ProductRankingChart data={data} metric="revenue" />
+export function TopProductsByRevenueChart({
+  data,
+}: {
+  data: OrdersDashboard["topProductsByRevenue"];
+}) {
+  return <ProductRankingChart data={data} metric="revenue" />;
 }

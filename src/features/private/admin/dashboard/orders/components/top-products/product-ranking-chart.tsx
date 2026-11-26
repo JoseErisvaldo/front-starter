@@ -1,8 +1,8 @@
 import { Typography } from '@mui/material'
 import { BarChart } from '@mui/x-charts/BarChart'
-import type { OrdersDashboard } from '../schema/orders-dashboard.schema'
-import { formatBrazilianCurrency, formatOrdersChartCurrency } from '../utils/orders-dashboard-formatters'
-import { MultilineBarLabel } from './multiline-bar-label'
+import type { OrdersDashboard } from '../../types/orders-dashboard.types'
+import { formatBrazilianCurrency, formatOrdersChartCurrency } from '../../utils/orders-dashboard-formatters'
+import { MultilineBarLabel } from '../multiline-bar-label'
 
 type ProductRanking = OrdersDashboard['topProductsByOrders']
 

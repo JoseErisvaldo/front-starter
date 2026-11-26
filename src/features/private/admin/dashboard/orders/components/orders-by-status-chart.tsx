@@ -1,7 +1,7 @@
 import { Box, Stack, Typography } from '@mui/material'
 import { PieChart } from '@mui/x-charts/PieChart'
 import { formatBrazilianCurrency } from '../../../../../../shared/utils/format-brazilian-currency'
-import type { OrdersDashboard } from '../schema/orders-dashboard.schema'
+import type { OrdersDashboard } from '../types/orders-dashboard.types'
 import { getOrderStatusColor, getOrderStatusLabel } from '../utils/orders-dashboard-formatters'
 
 export function OrdersByStatusChart({ data }: { data: OrdersDashboard['statuses'] }) {

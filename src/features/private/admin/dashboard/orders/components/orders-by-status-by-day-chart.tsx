@@ -1,6 +1,6 @@
 import { LineChart } from '@mui/x-charts/LineChart'
 import { formatBrazilianDayMonthLabel } from '../../../../../../shared/utils/format-brazilian-date'
-import type { OrdersDashboard } from '../schema/orders-dashboard.schema'
+import type { OrdersDashboard } from '../types/orders-dashboard.types'
 import { getOrderStatusColor, getOrderStatusLabel } from '../utils/orders-dashboard-formatters'
 
 export function OrdersByStatusByDayChart({ data, statuses }: {

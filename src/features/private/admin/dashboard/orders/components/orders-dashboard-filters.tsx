@@ -1,45 +1,12 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Button, Divider, FormControl, FormControlLabel, Radio, RadioGroup, Stack, TextField } from '@mui/material'
-
-export type OrdersDashboardPreset = 'today' | 'this_week' | 'this_month' | 'last_30_days' | 'last_month' | 'custom'
-export type OrdersDashboardFilters = { preset: OrdersDashboardPreset; dateFrom: string; dateTo: string }
+import type { OrdersDashboardFilters, OrdersDashboardPreset } from '../types/orders-dashboard.types'
+import { formatOrdersDashboardLocalDate, getOrdersDashboardDateRange } from '../utils/get-orders-dashboard-date-range'
 
 type Props = {
   filters: OrdersDashboardFilters
   onApply: (filters: OrdersDashboardFilters) => void
   onClose: () => void
-}
-
-function localDate(date: Date) {
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-export function getOrdersDashboardDateRange(preset: OrdersDashboardPreset, from: string, to: string) {
-  if (preset === 'custom') return { dateFrom: from, dateTo: to }
-  const today = new Date()
-  if (preset === 'today') return { dateFrom: localDate(today), dateTo: localDate(today) }
-  if (preset === 'last_30_days') {
-    const start = new Date(today)
-    start.setDate(today.getDate() - 29)
-    return { dateFrom: localDate(start), dateTo: localDate(today) }
-  }
-  if (preset === 'last_month') {
-    const start = new Date(today.getFullYear(), today.getMonth() - 1, 1)
-    const end = new Date(today.getFullYear(), today.getMonth(), 0)
-    return { dateFrom: localDate(start), dateTo: localDate(end) }
-  }
-  if (preset === 'this_month') {
-    return {
-      dateFrom: localDate(new Date(today.getFullYear(), today.getMonth(), 1)),
-      dateTo: localDate(today),
-    }
-  }
-  const monday = new Date(today)
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
-  return { dateFrom: localDate(monday), dateTo: localDate(today) }
 }
 
 export function OrdersDashboardFiltersForm({ filters, onApply, onClose }: Props) {
@@ -60,8 +27,8 @@ export function OrdersDashboardFiltersForm({ filters, onApply, onClose }: Props)
     if (values.preset === 'custom') {
       const today = new Date()
       const earliestAllowed = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 29)
-      const earliestAllowedDate = localDate(earliestAllowed)
-      const latestAllowedDate = localDate(today)
+      const earliestAllowedDate = formatOrdersDashboardLocalDate(earliestAllowed)
+      const latestAllowedDate = formatOrdersDashboardLocalDate(today)
       const duration = (Date.parse(`${range.dateTo}T00:00:00Z`) - Date.parse(`${range.dateFrom}T00:00:00Z`)) / 86400000 + 1
       if (range.dateFrom < earliestAllowedDate || range.dateTo > latestAllowedDate || duration > 30) {
         setError('O período personalizado deve estar nos últimos 30 dias e ter no máximo 30 dias. Para consultar o mês anterior, selecione “Mês passado”.')
@@ -105,8 +72,8 @@ export function OrdersDashboardFiltersForm({ filters, onApply, onClose }: Props)
               slotProps={{
                 inputLabel: { shrink: true },
                 htmlInput: {
-                  min: localDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 29)),
-                  max: localDate(new Date()),
+                  min: formatOrdersDashboardLocalDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 29)),
+                  max: formatOrdersDashboardLocalDate(new Date()),
                 },
               }}
               fullWidth
@@ -119,8 +86,8 @@ export function OrdersDashboardFiltersForm({ filters, onApply, onClose }: Props)
               slotProps={{
                 inputLabel: { shrink: true },
                 htmlInput: {
-                  min: localDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 29)),
-                  max: localDate(new Date()),
+                  min: formatOrdersDashboardLocalDate(new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 29)),
+                  max: formatOrdersDashboardLocalDate(new Date()),
                 },
               }}
               fullWidth

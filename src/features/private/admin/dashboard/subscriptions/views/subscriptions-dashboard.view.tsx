@@ -5,10 +5,10 @@ import { formatBrazilianCurrency } from '../../../../../../shared/utils/format-b
 import { LayoutAdmin } from '../../../../../../shared/layout/layout-admin'
 import { useLogout } from '../../../../../public/auth/hooks/use-logout'
 import {
-  getOrdersDashboardDateRange,
   OrdersDashboardFiltersForm,
-  type OrdersDashboardFilters,
 } from '../../orders/components/orders-dashboard-filters'
+import { getOrdersDashboardDateRange } from '../../orders/utils/get-orders-dashboard-date-range'
+import type { OrdersDashboardFilters } from '../../orders/types/orders-dashboard.types'
 import { getSubscriptionsDashboardService } from '../services/subscriptions-dashboard.service'
 import { SubscriptionsByDayChart } from '../components/subscriptions-by-day-chart'
 import { SubscriptionsByStatusChart } from '../components/subscriptions-by-status-chart'

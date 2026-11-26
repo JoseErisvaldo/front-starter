@@ -3,8 +3,8 @@ import { logError } from '../../../../../../shared/lib/log-error'
 import {
   ordersDashboardQuerySchema,
   ordersDashboardResponseSchema,
-  type OrdersDashboardQuery,
 } from '../schema/orders-dashboard.schema'
+import type { OrdersDashboardQuery } from '../types/orders-dashboard.types'
 
 export async function getOrdersDashboardService(query: OrdersDashboardQuery) {
   try {
