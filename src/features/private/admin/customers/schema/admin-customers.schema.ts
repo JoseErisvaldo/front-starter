@@ -61,8 +61,3 @@ export const adminCustomerDetailsSchema = z.object({
     })),
   })),
 })
-
-export type AdminCustomersQuery = z.infer<typeof adminCustomersQuerySchema>
-export type AdminCustomersResponse = z.infer<typeof adminCustomersResponseSchema>
-export type AdminCustomer = AdminCustomersResponse['customers'][number]
-export type AdminCustomerDetails = z.infer<typeof adminCustomerDetailsSchema>

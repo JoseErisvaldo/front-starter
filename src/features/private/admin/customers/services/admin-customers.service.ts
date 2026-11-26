@@ -4,8 +4,8 @@ import {
   adminCustomersQuerySchema,
   adminCustomersResponseSchema,
   adminCustomerDetailsSchema,
-  type AdminCustomersQuery,
 } from '../schema/admin-customers.schema'
+import type { AdminCustomersQuery } from '../types/admin-customers.types'
 
 export async function getAdminCustomersService(query: AdminCustomersQuery) {
   try {

@@ -1,20 +1,16 @@
 import { Chip, Divider, Paper, Skeleton, Stack, Typography } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
 import { formatCurrency } from '../../../../../shared/lib/format-currency'
 import { formatBrazilianDate } from '../../../../../shared/utils/format-brazilian-date'
 import { translatePaymentStatus, translatePaymentStatusDetail } from '../../../../../shared/i18n/payment'
 import { SubscriptionStatusChip } from '../../../../subscriptions/components/subscription-status-chip'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
-import { getAdminCustomerDetailsService } from '../services/admin-customers.service'
+import { useAdminCustomerDetailsQuery } from '../queries/use-admin-customer-details-query'
 
 const tierNames = { BASIC: 'Básico', INTERMEDIATE: 'Intermediário', ADVANCED: 'Avançado' } as const
 const recurrenceNames = { WEEKLY: 'Semanal', MONTHLY: 'Mensal', QUARTERLY: 'Trimestral', YEARLY: 'Anual' } as const
 
 export function AdminCustomerDetails({ customerId }: { customerId: string }) {
-  const details = useQuery({
-    queryKey: ['admin-customer-details', customerId],
-    queryFn: () => getAdminCustomerDetailsService(customerId),
-  })
+  const details = useAdminCustomerDetailsQuery(customerId)
 
   if (details.isLoading) {
     return (

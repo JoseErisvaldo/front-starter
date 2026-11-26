@@ -28,8 +28,8 @@ const loadAdminSubscriptionsRoute = () =>
   )
 
 const loadAdminCustomersRoute = () =>
-  import('../features/private/admin/customers/routes/admin-customers.route').then(
-    (module) => module.AdminCustomersRoute,
+  import('../features/private/admin/customers').then(
+    (module) => module.AdminCustomersView,
   )
 
 const loadCustomerDashboardRoute = () =>

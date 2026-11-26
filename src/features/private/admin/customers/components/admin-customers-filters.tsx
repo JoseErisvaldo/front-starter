@@ -1,19 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Alert, Button, Divider, MenuItem, Stack, TextField, Typography } from '@mui/material'
-
-export type AdminCustomersFilters = {
-  search: string
-  status: '' | 'active' | 'cancelled' | 'never_subscribed'
-  createdAtFrom: string
-  createdAtTo: string
-}
-
-export const emptyAdminCustomersFilters: AdminCustomersFilters = {
-  search: '',
-  status: '',
-  createdAtFrom: '',
-  createdAtTo: '',
-}
+import {
+  emptyAdminCustomersFilters,
+  type AdminCustomersFilters,
+} from '../types/admin-customers.types'
 
 export function AdminCustomersFiltersForm({
   filters,
