@@ -7,7 +7,7 @@ import { AdminAccountRoute } from '../features/private/admin/account'
 import { OrdersView } from '../features/private/user/orders'
 import { AccountView } from '../features/private/user/account'
 import { AuthRoute } from '../features/public/auth/routes/auth.route'
-import { CatalogRoute } from '../features/public/products/routes/catalog.route'
+import { CatalogView } from '../features/public/products'
 import { LayoutAdmin } from '../shared/layout/layout-admin'
 import { AdminTableSkeleton } from '../shared/components/admin-table-skeleton'
 import { useLogout } from '../features/public/auth/hooks/use-logout'
@@ -119,7 +119,7 @@ function AdminRouteLoader({ title, subtitle, columns, toolbar = false, showTable
 
 const publicRoutes: RouteObject[] = [
   { path: '/', element: <Navigate to="/produtos" replace /> },
-  { path: '/produtos', element: <CatalogRoute /> },
+  { path: '/produtos', element: <CatalogView /> },
   { path: '/login', element: <AuthRoute mode="login" /> },
   { path: '/register', element: <AuthRoute mode="register" /> },
 ]

@@ -1,185 +1,161 @@
-import { useMemo, useState } from "react";
 import {
   Alert,
+  AppBar,
   Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
   Container,
-  Skeleton,
+  IconButton,
+  InputAdornment,
   Stack,
   TextField,
+  Toolbar,
   Typography,
 } from "@mui/material";
-import type { User } from "../../auth/types/auth.types";
-import type { Product } from "../types/product.types";
-import { formatCurrency } from "../../../../shared/lib/format-currency";
-import { StoreHeader } from "../../../../shared/components/store-header";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import { Link as RouterLink } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { CartDrawer } from "../../cart/components/cart-drawer.view";
+import { useCatalogPage } from "../hooks/use-catalog-page";
+import { ProductGrid } from "../components/product-grid/product-grid";
+import { ProductGridSkeleton } from "../components/product-grid/product-grid.skeleton";
+import { PaymentCheckoutView } from "../../../../shared/cross-features/payments";
 import { LayoutUser } from "../../../../shared/layout/layout-user";
 
-type Props = {
-  user: User | null;
-  isAuthLoading: boolean;
-  products: Product[];
-  isLoading: boolean;
-  error: string;
-  onLogout: () => void;
-  onAddToCart: (product: Product) => void;
-  cartCount: number;
-  onOpenCart: () => void;
-};
-
-export function CatalogView({
-  user,
-  isAuthLoading,
-  products,
-  isLoading,
-  error,
-  onLogout,
-  onAddToCart,
-  cartCount,
-  onOpenCart,
-}: Props) {
-  const [search, setSearch] = useState("");
-  const filteredProducts = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("pt-BR");
-    if (!query) return products;
-    return products.filter((product) =>
-      `${product.name} ${product.description}`
-        .toLocaleLowerCase("pt-BR")
-        .includes(query),
-    );
-  }, [products, search]);
-
+export function CatalogView() {
+  const catalog = useCatalogPage();
   const cartButton = (
-    <Button variant="outlined" size="small" onClick={onOpenCart}>
-      Carrinho{cartCount > 0 ? ` (${cartCount})` : ""}
-    </Button>
-  );
-  const content = (
-    <Box component="main" sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-      {!isAuthLoading && user?.role !== "USER" && (
-        <StoreHeader
-          user={user}
-          activePage="products"
-          onLogout={onLogout}
-          cartCount={cartCount}
-          onOpenCart={onOpenCart}
-        />
+    <IconButton
+      aria-label={`Carrinho com ${catalog.cartCount} itens`}
+      onClick={() => catalog.setIsCartOpen(true)}
+      color="primary"
+    >
+      <ShoppingCartOutlinedIcon />
+      {catalog.cartCount > 0 && (
+        <Box
+          component="span"
+          sx={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            fontSize: 11,
+            fontWeight: 700,
+            borderRadius: "50%",
+            bgcolor: "error.main",
+            color: "common.white",
+            width: 18,
+            height: 18,
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
+          {catalog.cartCount}
+        </Box>
       )}
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-        <Stack spacing={3}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
-            <Box>
-            <Typography variant="h4" component="h1">
+    </IconButton>
+  );
+
+  const content = (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={2500}
+        newestOnTop
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+      {!catalog.user && (
+        <AppBar position="sticky" color="inherit" elevation={0}>
+          <Toolbar component={Container} maxWidth="lg" sx={{ gap: 2 }}>
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{ flexGrow: 1, fontWeight: 700 }}
+            >
               Produtos
             </Typography>
+            <Button component={RouterLink} to="/login">
+              Entrar
+            </Button>
+            {cartButton}
+          </Toolbar>
+        </AppBar>
+      )}
+
+      <Container maxWidth="lg" sx={{ py: 5 }}>
+        <Stack spacing={3}>
+          <Box>
+            <Stack
+              direction="row"
+              sx={{ alignItems: "center", justifyContent: "space-between" }}
+            >
+              <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+                Nosso catálogo
+              </Typography>
+              {catalog.user && cartButton}
+            </Stack>
             <Typography color="text.secondary" sx={{ mt: 1 }}>
-              Confira os produtos disponíveis.
+              Encontre os produtos disponíveis e adicione ao seu carrinho.
             </Typography>
-            </Box>
-            {user?.role === "USER" && (
-              <Box sx={{ display: { xs: "none", sm: "block" } }}>{cartButton}</Box>
-            )}
           </Box>
           <TextField
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar produtos"
-            aria-label="Buscar produtos"
             fullWidth
-            sx={{ maxWidth: 720, bgcolor: "background.paper" }}
+            value={catalog.search}
+            onChange={(event) => catalog.setSearch(event.target.value)}
+            placeholder="Buscar produtos..."
+            aria-label="Buscar produtos"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">⌕</InputAdornment>
+                ),
+              },
+            }}
           />
-          {error && <Alert severity="error">{error}</Alert>}
-          {isLoading || (isAuthLoading && !user) ? (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  md: "repeat(3, minmax(0, 1fr))",
-                },
-                gap: 2,
-              }}
-            >
-              {Array.from({ length: 6 }, (_, index) => (
-                <Skeleton key={index} variant="rounded" height={260} />
-              ))}
-            </Box>
-          ) : !error && filteredProducts.length === 0 ? (
+
+          {catalog.productsError ? (
+            <Alert severity="error">{catalog.productsError}</Alert>
+          ) : catalog.isProductsLoading ? (
+            <ProductGridSkeleton />
+          ) : catalog.products.length === 0 ? (
             <Alert severity="info">
-              {search
-                ? "Nenhum produto encontrado para essa busca."
+              {catalog.search
+                ? "Nenhum produto encontrado para esta busca."
                 : "Nenhum produto disponível no momento."}
             </Alert>
           ) : (
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                  xs: "1fr",
-                  sm: "repeat(2, minmax(0, 1fr))",
-                  md: "repeat(3, minmax(0, 1fr))",
-                },
-                gap: 2,
-              }}
-            >
-              {filteredProducts.map((product) => (
-                <Card
-                  key={product.id}
-                  variant="outlined"
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    minHeight: 240,
-                    bgcolor: "background.paper",
-                    "&:hover": {
-                      borderColor: "primary.main",
-                    },
-                  }}
-                >
-                  <CardContent sx={{ flex: 1, p: 2.5 }}>
-                    <Typography variant="h6" component="h2">
-                      {product.name}
-                    </Typography>
-                    <Typography
-                      color="text.secondary"
-                      sx={{
-                        mt: 1,
-                        minHeight: 48,
-                        overflow: "hidden",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                      }}
-                    >
-                      {product.description}
-                    </Typography>
-                    <Typography variant="h5" sx={{ mt: 3, fontWeight: 650 }}>
-                      {formatCurrency(product.price, product.currency)}
-                    </Typography>
-                  </CardContent>
-                  <CardActions sx={{ px: 2.5, pb: 2.5 }}>
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      disabled={isAuthLoading && !user}
-                      onClick={() => onAddToCart(product)}
-                    >
-                      Adicionar ao carrinho
-                    </Button>
-                  </CardActions>
-                </Card>
-              ))}
-            </Box>
+            <ProductGrid
+              products={catalog.products}
+              onAddToCart={catalog.onAddToCart}
+            />
           )}
         </Stack>
       </Container>
-    </Box>
+
+      <CartDrawer
+        open={catalog.isCartOpen}
+        onClose={() => catalog.setIsCartOpen(false)}
+        onCheckout={catalog.onCheckout}
+      />
+      {catalog.user && (
+        <PaymentCheckoutView
+          items={catalog.checkoutItems}
+          user={catalog.user}
+          result={catalog.paymentResult}
+          onClose={() => catalog.setCheckoutItems([])}
+          onViewOrders={catalog.onViewOrders}
+          onResult={catalog.onPaymentResult}
+        />
+      )}
+    </>
   );
-  return user?.role === "USER"
-    ? <LayoutUser onLogout={onLogout} mobileAction={cartButton}>{content}</LayoutUser>
-    : content;
+
+  return catalog.user ? (
+    <LayoutUser onLogout={catalog.onLogout}>{content}</LayoutUser>
+  ) : (
+    content
+  );
 }
