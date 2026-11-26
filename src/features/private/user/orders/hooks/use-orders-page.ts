@@ -1,24 +1,15 @@
 import { useState } from 'react'
+import { useLogout } from '../../../../public/auth/hooks/use-logout'
 import { getApiErrorMessage } from '../../../../../shared/lib/api-error'
+// TODO Ajuste ta importando outra features
 import { usePaymentsQuery } from '../../payments/queries/use-payments-query'
 
-export function useHome(enabled = true) {
+export function useOrdersPage() {
+  const logout = useLogout()
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null)
   const [paymentsPage, setPaymentsPage] = useState(0)
   const paymentsPageSize = 10
-  const paymentsQuery = usePaymentsQuery(
-    paymentsPage + 1,
-    paymentsPageSize,
-    enabled,
-  )
-
-  function openPaymentDetails(paymentId: string) {
-    setSelectedPaymentId(paymentId)
-  }
-
-  function closePaymentDetails() {
-    setSelectedPaymentId(null)
-  }
+  const paymentsQuery = usePaymentsQuery(paymentsPage + 1, paymentsPageSize, true)
 
   function handlePaymentsPageChange(_event: unknown, page: number) {
     setPaymentsPage(page)
@@ -33,8 +24,9 @@ export function useHome(enabled = true) {
     isPaymentsFetching: paymentsQuery.isFetching,
     paymentsError: paymentsQuery.error ? getApiErrorMessage(paymentsQuery.error) : '',
     selectedPaymentId,
-    onViewPaymentDetails: openPaymentDetails,
-    onClosePaymentDetails: closePaymentDetails,
+    onLogout: logout,
+    onViewPaymentDetails: setSelectedPaymentId,
+    onClosePaymentDetails: () => setSelectedPaymentId(null),
     onPaymentsPageChange: handlePaymentsPageChange,
     onPaymentsRefresh: () => void paymentsQuery.refetch(),
   }
