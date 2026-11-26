@@ -1,13 +1,15 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react'
-import { Alert, Button, CircularProgress, Stack } from '@mui/material'
+import { useEffect, useState, type ComponentType } from 'react'
+import { Alert, Button, Stack } from '@mui/material'
 import { Navigate, type RouteObject } from 'react-router-dom'
 import { AuthGuard } from '../features/private/guards/auth.guard'
 import { AdminRoute } from '../features/private/admin/routes/admin.route'
 import { AdminAccountRoute } from '../features/private/admin/account'
 import { OrdersView } from '../features/private/user/orders'
 import { AccountView } from '../features/private/user/account'
+import { SubscriptionPlansView } from '../features/private/user/subscriptions'
+import { MySubscriptionsView } from '../features/private/user/my-subscriptions'
 import { AuthRoute } from '../features/public/auth/routes/auth.route'
-import { CatalogRoute } from '../features/public/products/routes/catalog.route'
+import { CatalogView } from '../features/public/products'
 import { LayoutAdmin } from '../shared/layout/layout-admin'
 import { AdminTableSkeleton } from '../shared/components/admin-table-skeleton'
 import { useLogout } from '../features/public/auth/hooks/use-logout'
@@ -46,18 +48,6 @@ const loadSubscriptionsDashboardRoute = () =>
   import('../features/private/admin/dashboard/subscriptions').then(
     (module) => module.SubscriptionsDashboardView,
   )
-
-const UserSubscriptionPlansView = lazy(() =>
-  import('../features/private/user/subscriptions').then(
-    (module) => ({ default: module.SubscriptionPlansView }),
-  ),
-)
-
-const MySubscriptionsView = lazy(() =>
-  import('../features/private/user/my-subscriptions').then(
-    (module) => ({ default: module.MySubscriptionsView }),
-  ),
-)
 
 function AdminRouteLoader({ title, subtitle, columns, toolbar = false, showTableSkeleton = true, loadRoute }: {
   title: string
@@ -119,7 +109,7 @@ function AdminRouteLoader({ title, subtitle, columns, toolbar = false, showTable
 
 const publicRoutes: RouteObject[] = [
   { path: '/', element: <Navigate to="/produtos" replace /> },
-  { path: '/produtos', element: <CatalogRoute /> },
+  { path: '/produtos', element: <CatalogView /> },
   { path: '/login', element: <AuthRoute mode="login" /> },
   { path: '/register', element: <AuthRoute mode="register" /> },
 ]
@@ -129,19 +119,11 @@ const userPrivateRoutes: RouteObject[] = [
   { path: '/pedidos', element: <OrdersView /> },
   {
     path: '/assinaturas',
-    element: (
-      <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
-        <UserSubscriptionPlansView />
-      </Suspense>
-    ),
+    element: <SubscriptionPlansView />,
   },
   {
     path: '/minhas-assinaturas',
-    element: (
-      <Suspense fallback={<Stack sx={{ minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}><CircularProgress /></Stack>}>
-        <MySubscriptionsView />
-      </Suspense>
-    ),
+    element: <MySubscriptionsView />,
   },
 ]
 

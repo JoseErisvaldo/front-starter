@@ -7,7 +7,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { logError } from "../../../../../shared/lib/log-error";
+import { logError } from "../../../../lib/log-error";
 
 type Props = {
   qrCode: string | null;

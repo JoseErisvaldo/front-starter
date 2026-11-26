@@ -15,14 +15,17 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { formatCurrency } from "../../../../../shared/lib/format-currency";
+import { formatCurrency } from "../../../../../../shared/lib/format-currency";
 import {
   translatePaymentMethod,
   translatePaymentStatus,
   translatePaymentStatusDetail,
-} from "../../../../../shared/i18n/payment";
-import { getPaymentState, isPaymentExpired } from "../utils/payment-status";
-import type { PaymentListResponse } from "../types/payment.types";
+} from "../../../../../../shared/i18n/payment";
+import {
+  getPaymentState,
+  isPaymentExpired,
+  type PaymentListResponse,
+} from "../../../../../../shared/cross-features/payments";
 
 type Props = {
   payments: PaymentListResponse["payments"];

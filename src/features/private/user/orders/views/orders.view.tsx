@@ -4,8 +4,8 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
-import { PaymentHistoryCardsView } from "../../payments/components/payment-history-cards.view";
-import { PaymentDetailsView } from "../../payments/components/payment-details.view";
+import { PaymentHistoryCardsView } from "../components/payment-history/payment-history-cards";
+import { PaymentDetailsView } from "../components/payment-details/payment-details";
 import { LayoutUser } from "../../../../../shared/layout/layout-user";
 import { useOrdersPage } from "../hooks/use-orders-page";
 

@@ -1,5 +1,5 @@
-import { httpClient } from '../../../../../shared/services/http-client'
-import { logError } from '../../../../../shared/lib/log-error'
+import { httpClient } from '../../../services/http-client'
+import { logError } from '../../../lib/log-error'
 import { paymentResponseSchema } from '../schema/payment.schema'
 import type { CreatePaymentInput, PaymentResponse } from '../types/payment.types'
 

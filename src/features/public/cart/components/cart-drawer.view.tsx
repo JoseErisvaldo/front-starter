@@ -1,26 +1,28 @@
 import { useMemo } from "react";
 import {
-  Alert,
   Box,
   Button,
   Divider,
-  Drawer,
   IconButton,
-  Paper,
   Stack,
   Typography,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import RemoveIcon from "@mui/icons-material/Remove";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import { formatCurrency } from "../../../../shared/lib/format-currency";
+import { CheckoutProgressStepper } from "../../../../shared/cross-features/payments";
+import { DrawerHeader } from "../../../../shared/components/drawer-header";
 import { useCartStore, type CartItem } from "../stores/cart.store";
 import { toast } from "react-toastify";
 
 type Props = {
-  open: boolean;
   onClose: () => void;
   onCheckout: (items: CartItem[]) => void;
 };
 
-export function CartDrawer({ open, onClose, onCheckout }: Props) {
+export function CartDrawer({ onClose, onCheckout }: Props) {
   const items = useCartStore((state) => state.items);
   const setQuantity = useCartStore((state) => state.setQuantity);
   const removeItem = useCartStore((state) => state.removeItem);
@@ -34,138 +36,169 @@ export function CartDrawer({ open, onClose, onCheckout }: Props) {
   );
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
+  function handleRemove(productId: string) {
+    removeItem(productId);
+    toast.success("Produto removido do carrinho.");
+  }
+
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: {
-            width: { xs: "100%", sm: 440 },
-            maxWidth: "100vw",
-            display: "flex",
-            flexDirection: "column",
-          },
-        },
-      }}
-    >
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: "center",
-          justifyContent: "space-between",
-          p: 2,
-          borderBottom: 1,
-          borderColor: "divider",
-        }}
-      >
-        <Box>
-          <Typography variant="h6">Carrinho</Typography>
-          <Typography variant="body2" color="text.secondary">
-            {itemCount} {itemCount === 1 ? "item" : "itens"}
-          </Typography>
-        </Box>
-        <IconButton aria-label="Fechar carrinho" onClick={onClose}>
-          <span aria-hidden="true">×</span>
-        </IconButton>
-      </Stack>
-      <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", bgcolor: "#f8faf8" }}>
+      <DrawerHeader
+        title="Seu carrinho"
+        subtitle="Revise seus produtos antes de continuar"
+        itemCount={itemCount}
+        onClose={onClose}
+        closeLabel="Fechar carrinho"
+      />
+
+      <Box sx={{ flex: 1, overflowY: "auto", p: { xs: 2, sm: 3 } }}>
+        {items.length > 0 && <CheckoutProgressStepper activeStep={0} />}
         {items.length === 0 ? (
-          <Alert severity="info">Seu carrinho está vazio.</Alert>
+          <Stack
+            sx={{
+              minHeight: 360,
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              px: 3,
+            }}
+            spacing={1.5}
+          >
+            <Box
+              sx={{
+                width: 76,
+                height: 76,
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "50%",
+                bgcolor: "action.hover",
+                color: "text.secondary",
+              }}
+            >
+              <ShoppingBagOutlinedIcon sx={{ fontSize: 36 }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Seu carrinho está vazio
+            </Typography>
+            <Typography color="text.secondary">
+              Explore os produtos e adicione algo para continuar.
+            </Typography>
+            <Button onClick={onClose} sx={{ mt: 1 }}>
+              Continuar comprando
+            </Button>
+          </Stack>
         ) : (
-          <Stack spacing={1.5}>
+          <Stack divider={<Divider flexItem />} spacing={0}>
             {items.map(({ product, quantity }) => (
-              <Paper key={product.id} variant="outlined" sx={{ p: 1.5 }}>
-                <Stack spacing={1.25}>
-                  <Stack
-                    direction="row"
-                    sx={{ justifyContent: "space-between", gap: 1 }}
+              <Stack
+                key={product.id}
+                direction="row"
+                sx={{
+                  alignItems: "center",
+                  gap: { xs: 0.5, sm: 1.5 },
+                  py: 1.5,
+                }}
+              >
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontWeight: 600, overflowWrap: "anywhere" }}
                   >
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>
-                        {product.name}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {formatCurrency(product.price, product.currency)} cada
-                      </Typography>
-                    </Box>
-                    <IconButton
-                      size="small"
-                      aria-label={`Remover ${product.name} do carrinho`}
-                      onClick={() => {
-                        removeItem(product.id);
-                        toast.info("Produto removido do carrinho.");
-                      }}
-                    >
-                      <span aria-hidden="true">×</span>
-                    </IconButton>
-                  </Stack>
-                  <Stack
-                    direction="row"
-                    sx={{ alignItems: "center", justifyContent: "space-between" }}
+                    {product.name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatCurrency(product.price, product.currency)} cada
+                  </Typography>
+                </Box>
+                <Stack
+                  direction="row"
+                  sx={{
+                    alignItems: "center",
+                    flexShrink: 0,
+                    border: 1,
+                    borderColor: "divider",
+                    borderRadius: 1,
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    aria-label={`Diminuir quantidade de ${product.name}`}
+                    onClick={() => {
+                      if (quantity === 1) {
+                        handleRemove(product.id);
+                        return;
+                      }
+                      setQuantity(product.id, quantity - 1);
+                    }}
                   >
-                    <Stack direction="row" sx={{ alignItems: "center" }}>
-                      <IconButton
-                        size="small"
-                        aria-label={`Diminuir quantidade de ${product.name}`}
-                        onClick={() => {
-                          if (quantity === 1) {
-                            removeItem(product.id);
-                            toast.info("Produto removido do carrinho.");
-                            return;
-                          }
-                          setQuantity(product.id, quantity - 1);
-                          toast.info(`Quantidade reduzida para ${quantity - 1}.`);
-                        }}
-                      >
-                        −
-                      </IconButton>
-                      <Typography sx={{ minWidth: 32, textAlign: "center" }}>
-                        {quantity}
-                      </Typography>
-                      <IconButton
-                        size="small"
-                        aria-label={`Aumentar quantidade de ${product.name}`}
-                        disabled={quantity >= 99}
-                        onClick={() => {
-                          setQuantity(product.id, quantity + 1);
-                          toast.success(`Quantidade aumentada para ${quantity + 1}.`);
-                        }}
-                      >
-                        +
-                      </IconButton>
-                    </Stack>
-                    <Typography sx={{ fontWeight: 600 }}>
-                      {formatCurrency(
-                        product.price * quantity,
-                        product.currency,
-                      )}
-                    </Typography>
-                  </Stack>
+                    <RemoveIcon fontSize="small" />
+                  </IconButton>
+                  <Typography
+                    aria-live="polite"
+                    sx={{ minWidth: 24, textAlign: "center", fontSize: 14 }}
+                  >
+                    {quantity}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    aria-label={`Aumentar quantidade de ${product.name}`}
+                    disabled={quantity >= 99}
+                    onClick={() => {
+                      setQuantity(product.id, quantity + 1);
+                    }}
+                  >
+                    <AddIcon fontSize="small" />
+                  </IconButton>
                 </Stack>
-              </Paper>
+                <Typography
+                  variant="body2"
+                  sx={{ minWidth: { xs: 68, sm: 84 }, textAlign: "right", fontWeight: 600 }}
+                >
+                  {formatCurrency(product.price * quantity, product.currency)}
+                </Typography>
+                <IconButton
+                  size="small"
+                  aria-label={`Remover ${product.name} do carrinho`}
+                  onClick={() => handleRemove(product.id)}
+                  sx={{ color: "text.secondary" }}
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </Stack>
             ))}
           </Stack>
         )}
       </Box>
-      <Stack spacing={1.5} sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-        <Stack direction="row" sx={{ justifyContent: "space-between" }}>
-          <Typography>Total</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {formatCurrency(total, "BRL")}
-          </Typography>
-        </Stack>
-        <Divider />
-        <Button
-          variant="contained"
-          size="large"
-          disabled={items.length === 0}
-          onClick={() => onCheckout(items)}
+
+      {items.length > 0 && (
+        <Stack
+          spacing={1.5}
+          sx={{
+            p: { xs: 2, sm: 3 },
+            bgcolor: "background.paper",
+            borderTop: 1,
+            borderColor: "divider",
+          }}
         >
-          Continuar para pagamento
-        </Button>
-      </Stack>
-    </Drawer>
+          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "baseline" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              Total
+            </Typography>
+            <Typography variant="h5" sx={{ fontWeight: 750 }}>
+              {formatCurrency(total, "BRL")}
+            </Typography>
+          </Stack>
+          <Button
+            variant="contained"
+            size="large"
+            fullWidth
+            onClick={() => onCheckout(items)}
+            sx={{ minHeight: 52, borderRadius: 2, fontWeight: 700 }}
+          >
+            Revisar pedido
+          </Button>
+        </Stack>
+      )}
+    </Box>
   );
 }
